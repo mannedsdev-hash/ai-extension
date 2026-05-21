@@ -1,0 +1,14 @@
+# Local MCP config — copy from .mcp.json.example, holds your own setup
+.mcp.json
+
+# Secrets / environment
+.env
+.env.local
+
+# Cache — re-fetchable tool output, not worth versioning
+data/cache/*
+!data/cache/.gitkeep
+
+# Python
+__pycache__/
+*.pyc

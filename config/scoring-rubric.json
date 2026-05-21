@@ -1,0 +1,24 @@
+{
+  "meta": {
+    "note": "Weights for opportunity-scorer (Stage 1, skill 3.6). Sub-scores are 0-100; the final score is their weighted average. Tune weights and thresholds against known-good and known-bad products.",
+    "weights_must_sum_to": 100
+  },
+  "weights": {
+    "demand_and_trend": 25,
+    "competition_saturation_inverted": 20,
+    "margin_health": 20,
+    "differentiation_potential": 20,
+    "operational_simplicity": 15
+  },
+  "verdict_thresholds": {
+    "go": 70,
+    "watch": 50
+  },
+  "sub_score_guidance": {
+    "demand_and_trend": "High when BSR indicates strong, growing or stable sales velocity. Low when demand is thin or declining.",
+    "competition_saturation_inverted": "High when few entrenched sellers and room to rank. Low when many listings have thousands of reviews.",
+    "margin_health": "Driven by margin-scorer net margin: >=40% near 100, at the minimum threshold near 50, below threshold near 0.",
+    "differentiation_potential": "High when review gaps and Reddit pains point to concrete, buildable product improvements.",
+    "operational_simplicity": "High for small, light, non-fragile, non-regulated products. Low for oversize, fragile, hazmat, or compliance-heavy items."
+  }
+}

@@ -1,0 +1,28 @@
+{
+  "meta": {
+    "note": "Operating thresholds and per-run limits. Edit to tune behaviour and to cap API/credit spend."
+  },
+  "margin": {
+    "minimum_net_margin": 0.25,
+    "default_target_acos": 0.25,
+    "overhead_rate": 0.05
+  },
+  "saturation": {
+    "max_entrenched_sellers": 5,
+    "entrenched_review_count": 1000,
+    "crowded_total_offers": 20
+  },
+  "demand": {
+    "healthy_bsr_ceiling": 50000,
+    "trend_lookback_days": 90
+  },
+  "cache": {
+    "ttl_hours": 24
+  },
+  "run_limits": {
+    "max_asins_per_run": 15,
+    "max_competitor_asins": 10,
+    "max_reviews_per_asin": 100,
+    "max_reddit_threads": 60
+  }
+}

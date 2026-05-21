@@ -1,0 +1,54 @@
+{
+  "meta": {
+    "currency": "USD",
+    "marketplace": "amazon.com",
+    "last_verified": "2024-01-01",
+    "note": "APPROXIMATE US Amazon/FBA fees. These WILL drift. Verify against the current Amazon fee schedule before any money decision. This file is meant to be edited freely.",
+    "source": "https://sellercentral.amazon.com/help/hub/reference/external/GTG4BAWSY39Z98D4"
+  },
+  "referral_fee_rate": {
+    "default": 0.15,
+    "by_category": {
+      "amazon_devices_accessories": 0.45,
+      "baby_products": 0.15,
+      "beauty_health_and_personal_care": 0.15,
+      "consumer_electronics": 0.08,
+      "computers": 0.08,
+      "clothing_and_accessories": 0.17,
+      "furniture": 0.15,
+      "grocery_and_gourmet": 0.08,
+      "home_and_kitchen": 0.15,
+      "kitchen": 0.15,
+      "office_products": 0.15,
+      "pet_supplies": 0.15,
+      "sports_and_outdoors": 0.15,
+      "tools_and_home_improvement": 0.15,
+      "toys_and_games": 0.15
+    }
+  },
+  "minimum_referral_fee": 0.30,
+  "fba_fulfillment_fee": {
+    "note": "Per-unit pick-and-pack fee. Choose a tier id by the product's size band and shipping weight.",
+    "default_tier": "large_standard_8to12oz",
+    "tiers": [
+      { "id": "small_standard_under_4oz", "size": "small_standard", "max_weight_oz": 4, "fee": 3.06 },
+      { "id": "small_standard_4to8oz", "size": "small_standard", "max_weight_oz": 8, "fee": 3.15 },
+      { "id": "small_standard_8to12oz", "size": "small_standard", "max_weight_oz": 12, "fee": 3.24 },
+      { "id": "small_standard_12to16oz", "size": "small_standard", "max_weight_oz": 16, "fee": 3.33 },
+      { "id": "large_standard_under_4oz", "size": "large_standard", "max_weight_oz": 4, "fee": 3.68 },
+      { "id": "large_standard_4to8oz", "size": "large_standard", "max_weight_oz": 8, "fee": 3.90 },
+      { "id": "large_standard_8to12oz", "size": "large_standard", "max_weight_oz": 12, "fee": 4.15 },
+      { "id": "large_standard_12to16oz", "size": "large_standard", "max_weight_oz": 16, "fee": 4.55 },
+      { "id": "large_standard_1to1_5lb", "size": "large_standard", "max_weight_oz": 24, "fee": 4.99 },
+      { "id": "large_standard_1_5to2lb", "size": "large_standard", "max_weight_oz": 32, "fee": 5.37 },
+      { "id": "large_standard_2to3lb", "size": "large_standard", "max_weight_oz": 48, "fee": 6.06 },
+      { "id": "large_bulky", "size": "large_bulky", "max_weight_oz": 800, "fee": 9.73 }
+    ]
+  },
+  "monthly_storage_fee_per_cubic_foot": {
+    "standard_jan_sep": 0.78,
+    "standard_oct_dec": 2.40,
+    "oversize_jan_sep": 0.56,
+    "oversize_oct_dec": 1.40
+  }
+}
