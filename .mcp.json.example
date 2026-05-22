@@ -6,17 +6,6 @@
       "headers": {
         "Authorization": "Bearer ${APIFY_TOKEN}"
       }
-    },
-    "reddit-research": {
-      "type": "http",
-      "url": "${REDDIT_RESEARCH_MCP_URL}"
-    },
-    "keepa": {
-      "command": "python",
-      "args": ["-m", "keepa_mcp"],
-      "env": {
-        "KEEPA_API_KEY": "${KEEPA_API_KEY}"
-      }
     }
   }
 }

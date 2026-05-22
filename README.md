@@ -1,10 +1,25 @@
 # E-commerce Research & Ops Agent System
 
 A multi-agent system for the Amazon e-commerce pipeline. See [PLAN.md](PLAN.md)
-for the full build brief.
+for the original full build brief.
 
-**Status:** Stage 1 (`product-research-agent`) is built and scaffolded.
-Stages 2-5 are mapped in PLAN.md but not yet built.
+**Status:** Stage 1 (`product-research-agent`) is built, on the **free stack**
+(Apify only). Stages 2-5 are mapped in PLAN.md but not yet built.
+
+## Free-stack setup (current build)
+
+The brief specified three data sources — Reddit, Keepa, Apify. Keepa has no
+free API tier, so this build runs on the **free stack**:
+
+| Source | Cost | Status | Powers |
+|---|---|---|---|
+| **Apify** | free credits | ✅ connected | review-gap, demand-competition, pricing-competitor |
+| Reddit | free | ⏳ skipped — set up later | reddit-pain-miner |
+| Keepa | paid only | ❌ skipped | (would add historical price/rank trends) |
+
+The two skills that originally used Keepa (`demand-competition-analyst`,
+`pricing-competitor-analyst`) were **re-pointed to Apify**. Tradeoff: you get
+*current* price/rank/review data, not *historical trends*.
 
 ## Layout
 
@@ -12,69 +27,50 @@ Stages 2-5 are mapped in PLAN.md but not yet built.
 .claude/
   agents/product-research-agent.md   Stage 1 subagent
   skills/                            the six Stage 1 skills
-    reddit-pain-miner/
-    demand-competition-analyst/
-    review-gap-analyst/
-    pricing-competitor-analyst/
-    margin-scorer/        SKILL.md + calc.py (works offline)
+    reddit-pain-miner/        (idle until Reddit is added)
+    demand-competition-analyst/   uses Apify
+    review-gap-analyst/           uses Apify
+    pricing-competitor-analyst/   uses Apify
+    margin-scorer/        SKILL.md + calc.py (works offline, no keys)
     opportunity-scorer/
 config/
   amazon-fees.json         editable Amazon/FBA fee schedule
   scoring-rubric.json      opportunity-scorer weights + verdict thresholds
   thresholds.json          margin threshold, saturation rules, run/spend caps
 data/
-  products.json            candidate products + scores
-  competitors.json         competitor ASINs + pulled data
-  painpoints.json          Reddit findings with citations
+  products.json / competitors.json / painpoints.json   shared data store
   reports/                 generated opportunity reports
   cache/                   raw tool output (gitignored)
-.mcp.json.example          MCP server config template
+.mcp.json.example          MCP server config template (committed)
+.mcp.json                  live MCP config — holds the Apify token (gitignored)
+.env                       API keys (gitignored)
 ```
 
-## Setup — required before running the research agent
+## How the Apify key is wired
 
-The research skills depend on three MCP servers. They are **not** auto-connected;
-you must configure them with your own API keys.
+- `.env` holds `APIFY_TOKEN` (gitignored — never committed).
+- `.mcp.json` holds the live Apify MCP server config with the token inline
+  (also gitignored — never committed).
+- `.mcp.json.example` is the committed template, with a `${APIFY_TOKEN}`
+  placeholder instead of the real value.
 
-### 1. Get keys / accounts
-- **Keepa** — paid subscription -> `KEEPA_API_KEY`
-- **Apify** — free account -> `APIFY_TOKEN` (free monthly credits, then pay-per-result)
-- **Reddit research MCP** — use the hosted `king-of-the-grackles/reddit-research-mcp`
-  and note its endpoint URL, or self-host it.
-
-### 2. Set environment variables
-```sh
-export KEEPA_API_KEY="..."
-export APIFY_TOKEN="..."
-export REDDIT_RESEARCH_MCP_URL="https://..."   # endpoint of the reddit-research MCP
-```
-
-### 3. Create the MCP config
-```sh
-cp .mcp.json.example .mcp.json
-```
-`.mcp.json` is gitignored (it is local setup). Adjust the `keepa` entry to match
-whichever Keepa MCP you chose:
-- `cosjef/keepa_MCP` — clone it and set `command`/`args` to its documented start command.
-- `BWB03/keepa-adapter` — install the `.mcpb` and reference it instead.
-
-### 4. Verify the servers
-Restart Claude Code, run `/mcp`, and confirm `reddit-research`, `keepa`, and
-`apify` are connected. Do one small (~10-row) test pull per server before a
-full run — per PLAN.md §5 step 2.
+**To activate Apify:** MCP servers load when a Claude Code session starts, so
+start a **new session** (or restart) after `.mcp.json` is in place, then run
+`/mcp` to confirm `apify` shows as connected. Outbound access to
+`mcp.apify.com` must be allowed by the environment's network policy.
 
 ## Running Stage 1
 
-Once the MCP servers are connected, ask Claude Code:
+Once `apify` is connected, ask Claude Code:
 
 > Use the product-research-agent on the niche: `<your niche>`
 
-It runs the six skills in order and writes a ranked opportunity report to
-`data/reports/`.
+It runs the available skills in order and writes a ranked opportunity report
+to `data/reports/`. `reddit-pain-miner` is skipped until Reddit is added.
 
-## Margin scorer (works offline, no keys)
+## Margin scorer (works now, no keys)
 
-The margin calculator is pure math and runs without any MCP:
+The margin calculator is pure math and needs no MCP server:
 
 ```sh
 python3 .claude/skills/margin-scorer/calc.py \
@@ -84,18 +80,25 @@ python3 .claude/skills/margin-scorer/calc.py \
 
 Category keys and FBA size-tier ids are listed in `config/amazon-fees.json`.
 
-## Known gaps / what still needs you
+## Adding the skipped sources later
 
-- **MCP servers are not connected** in this repo — they need your keys
-  (step 1-3 above). Until then, `reddit-pain-miner`, `demand-competition-analyst`,
-  `review-gap-analyst`, and `pricing-competitor-analyst` cannot pull live data.
-- **No live test pull has been verified** (PLAN.md §5 step 2) — do this after
-  setup. Only `margin-scorer` has been verified, since it needs no network.
+- **Reddit (free):** create a `script` app at `reddit.com/prefs/apps`, then
+  wire a Reddit MCP server into `.mcp.json`. Re-enables `reddit-pain-miner`.
+- **Keepa (paid):** subscribe at `keepa.com/#!api`, add `KEEPA_API_KEY`, wire
+  a Keepa MCP server, and the two analyst skills can be switched back to Keepa
+  for historical trend data.
+
+## Known gaps
+
+- **No live test pull verified yet** — do a small (~10-row) Apify pull after
+  the session restarts, before a full run.
 - **Scoring not yet validated** against known-good/known-bad products
-  (PLAN.md §5 step 4) — tune `config/scoring-rubric.json` after the first runs.
-- The brief's §3.6 references an "existing `market-brainstorm` skill"; no such
-  skill exists in this repo. Its evidence-first synthesis intent is built into
-  `opportunity-scorer` instead.
+  (PLAN.md §5 step 4) — tune `config/scoring-rubric.json` after first runs.
+- With Reddit skipped, `opportunity-scorer`'s `differentiation_potential`
+  sub-score leans on review gaps alone; confidence is lower for that dimension.
+- The brief's §3.6 references an "existing `market-brainstorm` skill" — no such
+  skill exists in this repo. Its evidence-first synthesis is built into
+  `opportunity-scorer`.
 - **Stages 2-5 are not built** — only mapped in PLAN.md.
 - Fee numbers in `config/amazon-fees.json` are approximate and dated; verify
   against Amazon's current schedule before any money decision.

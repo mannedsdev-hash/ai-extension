@@ -18,19 +18,27 @@ Both files in `data/reports/`:
 Then summarize the top opportunities and their verdicts in chat.
 
 ## Tools and setup
-This stage depends on three MCP servers: `reddit-research`, `keepa`, `apify`.
-At the start of a run, confirm they are connected. If any is missing, tell the
-user exactly which one and what it blocks — then continue with whatever stages
-are still possible, clearly marking the gaps. Never invent data to fill a gap.
+Current setup is the **free stack** — only the `apify` MCP server is wired up.
+- `reddit-pain-miner` needs a Reddit server: **not connected** — skip it and
+  note the gap.
+- `demand-competition-analyst` and `pricing-competitor-analyst` use `apify`
+  (re-pointed off Keepa): current-snapshot data only, no historical trends.
+- `review-gap-analyst` uses `apify`.
+- `margin-scorer` and `opportunity-scorer` need no server.
+
+At the start of a run, confirm `apify` is connected. If a server is missing,
+tell the user exactly what it blocks — then continue with whatever skills can
+still run, clearly marking the gaps. Never invent data to fill a gap.
 
 ## Workflow
 Run the six skills in order. Each writes to the shared `data/` store; pass
 data between steps through that store, not through prose.
 
-1. **reddit-pain-miner** — buyer pain points for the niche -> `data/painpoints.json`
-2. **demand-competition-analyst** — Keepa demand & saturation -> `data/competitors.json`
+1. **reddit-pain-miner** — buyer pain points (SKIPPED on the free stack — no
+   Reddit server; `differentiation_potential` then leans on review gaps alone)
+2. **demand-competition-analyst** — Apify demand & saturation -> `data/competitors.json`
 3. **review-gap-analyst** — low-star review themes on top competitor ASINs
-4. **pricing-competitor-analyst** — price band & Buy Box landscape
+4. **pricing-competitor-analyst** — Apify price band & Buy Box landscape
 5. **margin-scorer** — unit economics via `calc.py` (uses pricing output)
 6. **opportunity-scorer** — combine all five into a 0-100 score + verdict
 
