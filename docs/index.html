@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>E-commerce Research &amp; Ops</title>
+<style>
+  :root {
+    --bg: #f4f5f7; --card: #ffffff; --ink: #1a1c20; --muted: #6b7280;
+    --line: #e5e7eb; --accent: #4f46e5; --accent-soft: #eef2ff;
+    --go: #16a34a; --watch: #d97706; --nogo: #dc2626;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--ink); line-height: 1.5;
+  }
+  header {
+    background: var(--card); border-bottom: 1px solid var(--line);
+    padding: 18px 24px;
+  }
+  header h1 { font-size: 19px; font-weight: 700; }
+  header p { color: var(--muted); font-size: 13px; margin-top: 2px; }
+  .banner {
+    background: #fffbeb; border: 1px solid #fde68a; color: #92400e;
+    font-size: 13px; padding: 10px 16px; border-radius: 8px;
+    margin: 16px 24px 0;
+  }
+  nav { display: flex; gap: 4px; padding: 12px 24px 0; flex-wrap: wrap; }
+  nav button {
+    background: none; border: none; cursor: pointer; font-size: 14px;
+    font-weight: 600; color: var(--muted); padding: 8px 14px;
+    border-radius: 8px 8px 0 0;
+  }
+  nav button.active { color: var(--accent); background: var(--accent-soft); }
+  main { padding: 20px 24px 60px; max-width: 1080px; }
+  section { display: none; }
+  section.active { display: block; }
+  h2 { font-size: 16px; margin-bottom: 4px; }
+  .sub { color: var(--muted); font-size: 13px; margin-bottom: 16px; }
+  .card {
+    background: var(--card); border: 1px solid var(--line);
+    border-radius: 12px; padding: 18px; margin-bottom: 14px;
+  }
+  table { width: 100%; border-collapse: collapse; }
+  th, td { text-align: left; padding: 10px 8px; font-size: 14px; }
+  th { color: var(--muted); font-weight: 600; border-bottom: 1px solid var(--line); }
+  tbody tr { border-bottom: 1px solid var(--line); cursor: pointer; }
+  tbody tr:hover { background: var(--accent-soft); }
+  .badge {
+    display: inline-block; font-size: 12px; font-weight: 700;
+    padding: 2px 9px; border-radius: 999px; color: #fff;
+  }
+  .badge.go { background: var(--go); }
+  .badge.watch { background: var(--watch); }
+  .badge.nogo { background: var(--nogo); }
+  .score { font-weight: 700; font-size: 15px; }
+  .bar-row { display: flex; align-items: center; gap: 10px; margin: 7px 0; font-size: 13px; }
+  .bar-label { width: 200px; color: var(--muted); }
+  .bar-track { flex: 1; background: var(--line); border-radius: 6px; height: 9px; }
+  .bar-fill { display: block; background: var(--accent); height: 9px; border-radius: 6px; }
+  .bar-val { width: 34px; text-align: right; font-weight: 600; }
+  .rationale { font-size: 13px; color: var(--ink); margin: 5px 0; padding-left: 12px; border-left: 3px solid var(--accent-soft); }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 12px 0 4px; }
+  input, select {
+    width: 100%; padding: 9px 11px; border: 1px solid var(--line);
+    border-radius: 8px; font-size: 14px; font-family: inherit;
+  }
+  .row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  button.primary {
+    background: var(--accent); color: #fff; border: none; cursor: pointer;
+    font-size: 14px; font-weight: 700; padding: 11px 18px;
+    border-radius: 8px; margin-top: 16px;
+  }
+  .result-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 20px; margin-top: 8px; }
+  .result-grid div { display: flex; justify-content: space-between; font-size: 14px; padding: 5px 0; border-bottom: 1px dashed var(--line); }
+  .result-grid .k { color: var(--muted); }
+  .verdict-line { font-size: 15px; font-weight: 700; padding: 12px; border-radius: 8px; margin-top: 14px; text-align: center; }
+  .verdict-ok { background: #dcfce7; color: var(--go); }
+  .verdict-bad { background: #fee2e2; color: var(--nogo); }
+  .pill { display:inline-block; background: var(--accent-soft); color: var(--accent); font-size:12px; font-weight:600; padding:2px 8px; border-radius:6px; }
+  .scene { margin: 8px 0; padding: 10px 12px; background: var(--bg); border-radius: 8px; font-size: 13px; }
+  .scene b { color: var(--accent); }
+  ul.tight { margin: 6px 0 6px 18px; font-size: 14px; }
+  ul.tight li { margin: 3px 0; }
+  #photoPreview { max-width: 220px; border-radius: 10px; margin-top: 10px; display: none; border: 1px solid var(--line); }
+  .demo-note { background:#fffbeb; border:1px solid #fde68a; color:#92400e; font-size:13px; padding:9px 12px; border-radius:8px; margin-top:12px; }
+  footer { color: var(--muted); font-size: 12px; padding: 20px 24px; border-top: 1px solid var(--line); }
+  .hero { background: linear-gradient(135deg,#4f46e5,#7c3aed); color:#fff; border-radius:14px; padding:32px; text-align:center; }
+  .hero h3 { font-size: 24px; margin-bottom: 8px; }
+  .hero p { opacity: .9; font-size: 14px; }
+  .feat { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-top:14px; }
+  .feat .card { margin: 0; }
+  .feat h4 { font-size: 14px; margin-bottom: 4px; }
+  .feat p { font-size: 13px; color: var(--muted); }
+</style>
+</head>
+<body>
+<header>
+  <h1>E-commerce Research &amp; Ops</h1>
+  <p>Stage 1 product research &middot; marketing &middot; margin tools</p>
+</header>
+
+<div class="banner">
+  <b>Preview build.</b> The <b>Margin Calculator</b> is fully functional.
+  Research &amp; Marketing tabs show <b>sample data</b> — live generation runs
+  through the Claude Code agent, not this static page.
+</div>
+
+<nav>
+  <button class="active" data-tab="research">Research</button>
+  <button data-tab="marketing">Marketing</button>
+  <button data-tab="create">Create</button>
+  <button data-tab="calc">Margin Calculator</button>
+  <button data-tab="landing">Landing Page</button>
+</nav>
+
+<main>
+  <!-- RESEARCH -->
+  <section id="research" class="active">
+    <h2>Product Opportunities <span class="pill">SAMPLE DATA</span></h2>
+    <p class="sub">Niche: "kitchen storage" — ranked by opportunity score. Click a row for the breakdown.</p>
+    <div class="card">
+      <table>
+        <thead><tr><th>Product</th><th>Score</th><th>Verdict</th></tr></thead>
+        <tbody id="researchRows"></tbody>
+      </table>
+    </div>
+    <div class="card" id="researchDetail"></div>
+  </section>
+
+  <!-- MARKETING -->
+  <section id="marketing">
+    <h2>Marketing Content <span class="pill">SAMPLE DATA</span></h2>
+    <p class="sub">Generated assets for: Stackable Pantry Bins (Set of 6)</p>
+    <div class="card">
+      <h3 style="font-size:14px;margin-bottom:8px;">Ad Copy</h3>
+      <b style="font-size:15px;">Finally — a pantry that stays tidy.</b>
+      <ul class="tight">
+        <li>Crystal-clear stackable bins so you see everything at a glance</li>
+        <li>Locks together — no more sliding, toppling towers</li>
+        <li>Fridge, freezer &amp; cabinet safe, BPA-free</li>
+        <li>Set of 6 — organize a whole shelf in minutes</li>
+      </ul>
+      <p style="font-size:13px;color:var(--muted);margin-top:6px;">
+        Stop digging through cluttered shelves. These stackable bins turn chaos
+        into a clean, grab-and-go pantry the whole family can keep up.
+      </p>
+    </div>
+    <div class="card">
+      <h3 style="font-size:14px;margin-bottom:8px;">UGC Video Script (30s)</h3>
+      <div class="scene"><b>0-5s Hook:</b> Open on a messy pantry. "My pantry was a disaster — until this."</div>
+      <div class="scene"><b>5-15s Problem:</b> Show items falling, hard to find. "Boxes everywhere, nothing stacks."</div>
+      <div class="scene"><b>15-25s Solution:</b> Stack the bins, fill them, slide them in. "They lock together. Everything visible."</div>
+      <div class="scene"><b>25-30s CTA:</b> Clean pantry reveal. "Set of 6. Link below."</div>
+    </div>
+    <div class="card">
+      <h3 style="font-size:14px;margin-bottom:8px;">Image Brief (shot list)</h3>
+      <ul class="tight">
+        <li><b>Main:</b> White background, all 6 bins stacked, props filled with pantry staples</li>
+        <li><b>Lifestyle:</b> Bins in a real pantry, hand reaching for one</li>
+        <li><b>Infographic:</b> Dimensions + "stacks &amp; locks" callout</li>
+        <li><b>Before/After:</b> Cluttered shelf vs organized shelf, split frame</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- CREATE -->
+  <section id="create">
+    <h2>Create Marketing Content</h2>
+    <p class="sub">Upload a product photo to see the workflow.</p>
+    <div class="card">
+      <label for="photoInput">Product photo</label>
+      <input type="file" id="photoInput" accept="image/*" />
+      <img id="photoPreview" alt="preview" />
+      <button class="primary" id="genBtn">Generate marketing content</button>
+      <div id="genOut" style="display:none;margin-top:14px;">
+        <div class="demo-note">
+          <b>Demo mode.</b> A static page cannot run AI generation. Live output
+          needs a backend server + an AI API key (paid). Below is sample output
+          showing the layout you would get from the marketing agent.
+        </div>
+        <div class="card" style="margin-top:12px;">
+          <b>Headline:</b> "The upgrade your kitchen was missing."<br>
+          <b>Caption:</b> Tag a friend who needs this. Set of 6, link in bio.<br>
+          <b>Video hook:</b> "POV: you finally fixed your messiest cabinet."
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- MARGIN CALCULATOR -->
+  <section id="calc">
+    <h2>Margin Calculator <span class="pill">FULLY FUNCTIONAL</span></h2>
+    <p class="sub">Amazon FBA unit economics. Same math as the margin-scorer skill.</p>
+    <div class="card">
+      <div class="row2">
+        <div><label for="sellPrice">Sell price ($)</label><input type="number" id="sellPrice" value="29.99" step="0.01" /></div>
+        <div><label for="landedCost">Landed cost ($) — COGS + shipping + duties</label><input type="number" id="landedCost" value="5.50" step="0.01" /></div>
+      </div>
+      <div class="row2">
+        <div><label for="category">Category (referral fee)</label><select id="category"></select></div>
+        <div><label for="fbaTier">FBA size tier</label><select id="fbaTier"></select></div>
+      </div>
+      <div class="row2">
+        <div><label for="acos">Target ACoS (ad cost, %)</label><input type="number" id="acos" value="25" step="1" /></div>
+        <div><label for="overhead">Overhead (% of price)</label><input type="number" id="overhead" value="5" step="1" /></div>
+      </div>
+      <button class="primary" id="calcBtn">Calculate</button>
+      <div id="calcOut" style="display:none;">
+        <div class="result-grid" id="calcRows"></div>
+        <div class="verdict-line" id="calcVerdict"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- LANDING -->
+  <section id="landing">
+    <h2>Landing Page <span class="pill">SAMPLE</span></h2>
+    <p class="sub">Example product sales page.</p>
+    <div class="hero">
+      <h3>Stackable Pantry Bins</h3>
+      <p>Turn cabinet chaos into a clean, grab-and-go pantry — in minutes.</p>
+    </div>
+    <div class="feat">
+      <div class="card"><h4>Stacks &amp; Locks</h4><p>Bins interlock so towers never topple.</p></div>
+      <div class="card"><h4>See Everything</h4><p>Crystal-clear so nothing gets lost at the back.</p></div>
+      <div class="card"><h4>Set of 6</h4><p>Organize a whole shelf out of the box.</p></div>
+    </div>
+  </section>
+</main>
+
+<footer>
+  E-commerce Research &amp; Ops &mdash; preview build. Sample data is illustrative
+  and not from a live data pull.
+</footer>
+
+<script>
+// ---- fee schedule (mirrors config/amazon-fees.json) ----
+const REFERRAL = {
+  "default (15%)": 0.15, "kitchen": 0.15, "home_and_kitchen": 0.15,
+  "pet_supplies": 0.15, "beauty_health_and_personal_care": 0.15,
+  "toys_and_games": 0.15, "sports_and_outdoors": 0.15,
+  "tools_and_home_improvement": 0.15, "office_products": 0.15,
+  "baby_products": 0.15, "furniture": 0.15,
+  "clothing_and_accessories (17%)": 0.17,
+  "consumer_electronics (8%)": 0.08, "computers (8%)": 0.08,
+  "grocery_and_gourmet (8%)": 0.08,
+  "amazon_devices_accessories (45%)": 0.45
+};
+const MIN_REFERRAL = 0.30;
+const FBA_TIERS = [
+  { id: "small_standard_under_4oz", label: "Small standard, under 4oz", fee: 3.06 },
+  { id: "small_standard_4to8oz", label: "Small standard, 4-8oz", fee: 3.15 },
+  { id: "small_standard_8to12oz", label: "Small standard, 8-12oz", fee: 3.24 },
+  { id: "small_standard_12to16oz", label: "Small standard, 12-16oz", fee: 3.33 },
+  { id: "large_standard_under_4oz", label: "Large standard, under 4oz", fee: 3.68 },
+  { id: "large_standard_4to8oz", label: "Large standard, 4-8oz", fee: 3.90 },
+  { id: "large_standard_8to12oz", label: "Large standard, 8-12oz", fee: 4.15 },
+  { id: "large_standard_12to16oz", label: "Large standard, 12-16oz", fee: 4.55 },
+  { id: "large_standard_1to1_5lb", label: "Large standard, 1-1.5lb", fee: 4.99 },
+  { id: "large_standard_1_5to2lb", label: "Large standard, 1.5-2lb", fee: 5.37 },
+  { id: "large_standard_2to3lb", label: "Large standard, 2-3lb", fee: 6.06 },
+  { id: "large_bulky", label: "Large bulky", fee: 9.73 }
+];
+const MIN_MARGIN = 0.25;
+
+// ---- sample research data ----
+const PRODUCTS = [
+  { name: "Stackable Pantry Bins (Set of 6)", score: 78, verdict: "go",
+    sub: { "Demand & trend": 82, "Competition (room to enter)": 70, "Margin health": 84, "Differentiation potential": 80, "Operational simplicity": 68 },
+    rationale: [
+      "Demand: strong, steady sales rank across the top kitchen-storage listings.",
+      "Competition: several listings but few with 5,000+ reviews — room to rank.",
+      "Margin: ~38% net margin at a $29.99 price with a $5.50 landed cost.",
+      "Differentiation: recurring complaints about bins that do not lock together.",
+      "Operations: light, non-fragile, no compliance load."
+    ] },
+  { name: "Under-sink Sliding Organizer", score: 61, verdict: "watch",
+    sub: { "Demand & trend": 66, "Competition (room to enter)": 48, "Margin health": 60, "Differentiation potential": 64, "Operational simplicity": 70 },
+    rationale: [
+      "Demand: solid but flatter than the pantry-bin niche.",
+      "Competition: crowded — multiple entrenched sellers with deep review counts.",
+      "Margin: workable but tighter; sensitive to landed cost.",
+      "Differentiation: some sizing complaints, a moderate angle.",
+      "Operations: mid-size, ships fine."
+    ] },
+  { name: "Magnetic Spice Rack", score: 39, verdict: "no-go",
+    sub: { "Demand & trend": 44, "Competition (room to enter)": 30, "Margin health": 36, "Differentiation potential": 42, "Operational simplicity": 52 },
+    rationale: [
+      "Demand: thin and slightly declining.",
+      "Competition: saturated with cheap, well-reviewed listings.",
+      "Margin: weak — price war pushes net margin below the 25% threshold.",
+      "Differentiation: few clear, buildable gaps.",
+      "Operations: small magnets — minor shipping considerations."
+    ] }
+];
+
+// ---- tabs ----
+document.querySelectorAll("nav button").forEach(b => {
+  b.onclick = () => {
+    document.querySelectorAll("nav button").forEach(x => x.classList.remove("active"));
+    document.querySelectorAll("section").forEach(x => x.classList.remove("active"));
+    b.classList.add("active");
+    document.getElementById(b.dataset.tab).classList.add("active");
+  };
+});
+
+// ---- research render ----
+function badge(v) {
+  const cls = v === "go" ? "go" : v === "watch" ? "watch" : "nogo";
+  return '<span class="badge ' + cls + '">' + v.toUpperCase() + '</span>';
+}
+const rows = document.getElementById("researchRows");
+PRODUCTS.forEach((p, i) => {
+  const tr = document.createElement("tr");
+  tr.innerHTML = "<td>" + p.name + "</td><td class='score'>" + p.score + "</td><td>" + badge(p.verdict) + "</td>";
+  tr.onclick = () => showDetail(i);
+  rows.appendChild(tr);
+});
+function showDetail(i) {
+  const p = PRODUCTS[i];
+  let html = "<h3 style='font-size:15px;margin-bottom:2px;'>" + p.name + "</h3>";
+  html += "<p class='sub'>Score " + p.score + " / 100 &mdash; verdict " + badge(p.verdict) + "</p>";
+  for (const [k, v] of Object.entries(p.sub)) {
+    html += "<div class='bar-row'><span class='bar-label'>" + k + "</span>" +
+      "<span class='bar-track'><span class='bar-fill' style='width:" + v + "%'></span></span>" +
+      "<span class='bar-val'>" + v + "</span></div>";
+  }
+  html += "<h4 style='font-size:13px;margin:14px 0 4px;'>Rationale</h4>";
+  p.rationale.forEach(r => { html += "<div class='rationale'>" + r + "</div>"; });
+  document.getElementById("researchDetail").innerHTML = html;
+}
+showDetail(0);
+
+// ---- create / photo upload ----
+document.getElementById("photoInput").onchange = e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  const img = document.getElementById("photoPreview");
+  img.src = URL.createObjectURL(f);
+  img.style.display = "block";
+};
+document.getElementById("genBtn").onclick = () => {
+  document.getElementById("genOut").style.display = "block";
+};
+
+// ---- margin calculator ----
+const catSel = document.getElementById("category");
+Object.keys(REFERRAL).forEach(k => {
+  const o = document.createElement("option");
+  o.value = k; o.textContent = k;
+  catSel.appendChild(o);
+});
+const fbaSel = document.getElementById("fbaTier");
+FBA_TIERS.forEach(t => {
+  const o = document.createElement("option");
+  o.value = t.id; o.textContent = t.label;
+  if (t.id === "large_standard_8to12oz") o.selected = true;
+  fbaSel.appendChild(o);
+});
+function money(n) { return "$" + n.toFixed(2); }
+document.getElementById("calcBtn").onclick = () => {
+  const price = parseFloat(document.getElementById("sellPrice").value) || 0;
+  const landed = parseFloat(document.getElementById("landedCost").value) || 0;
+  const refRate = REFERRAL[catSel.value];
+  const fbaFee = FBA_TIERS.find(t => t.id === fbaSel.value).fee;
+  const acos = (parseFloat(document.getElementById("acos").value) || 0) / 100;
+  const ovhRate = (parseFloat(document.getElementById("overhead").value) || 0) / 100;
+
+  const referral = Math.max(refRate * price, MIN_REFERRAL);
+  const adCost = acos * price;
+  const overhead = ovhRate * price;
+  const total = landed + referral + fbaFee + adCost + overhead;
+  const profit = price - total;
+  const margin = price ? profit / price : 0;
+  const variable = refRate + acos + ovhRate;
+  const fixed = landed + fbaFee;
+  const breakeven = (1 - variable) > 0 ? fixed / (1 - variable) : null;
+  const recoDenom = 1 - MIN_MARGIN - variable;
+  const reco = recoDenom > 0 ? fixed / recoDenom : null;
+
+  const rows = [
+    ["Landed cost", money(landed)], ["Referral fee", money(referral)],
+    ["FBA fulfilment fee", money(fbaFee)], ["Est. ad cost", money(adCost)],
+    ["Overhead", money(overhead)], ["Total cost / unit", money(total)],
+    ["Profit / unit", money(profit)], ["Net margin", (margin * 100).toFixed(1) + "%"],
+    ["Breakeven price", breakeven ? money(breakeven) : "n/a"],
+    ["Recommended price (25% margin)", reco ? money(reco) : "n/a"]
+  ];
+  document.getElementById("calcRows").innerHTML = rows
+    .map(r => "<div><span class='k'>" + r[0] + "</span><span>" + r[1] + "</span></div>").join("");
+  const v = document.getElementById("calcVerdict");
+  if (margin >= MIN_MARGIN) {
+    v.className = "verdict-line verdict-ok";
+    v.textContent = "PASS — net margin " + (margin * 100).toFixed(1) + "% meets the 25% threshold";
+  } else {
+    v.className = "verdict-line verdict-bad";
+    v.textContent = "BELOW THRESHOLD — net margin " + (margin * 100).toFixed(1) + "% is under 25%";
+  }
+  document.getElementById("calcOut").style.display = "block";
+};
+</script>
+</body>
+</html>

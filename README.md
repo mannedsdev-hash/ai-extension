@@ -80,6 +80,25 @@ python3 .claude/skills/margin-scorer/calc.py \
 
 Category keys and FBA size-tier ids are listed in `config/amazon-fees.json`.
 
+## Web preview page (`docs/index.html`)
+
+A single self-contained page with five tabs: Research, Marketing, Create,
+Margin Calculator, and Landing Page. No build step, no backend, no
+dependencies.
+
+- The **Margin Calculator** is fully functional (the same math as `calc.py`).
+- Research, Marketing, and Landing tabs show **sample data**, clearly labelled
+  — live generation runs through the Claude Code agent, not a static page.
+
+Open it locally by opening `docs/index.html` in a browser, or deploy it free
+on **GitHub Pages**:
+
+1. On GitHub, open the repo → **Settings** → **Pages**.
+2. Under **Build and deployment**, Source = **Deploy from a branch**.
+3. Branch = `claude/confident-euler-cg3XG`, folder = **`/docs`**. Save.
+4. Wait ~1 minute, refresh — the live URL appears at the top of the Pages
+   settings (`https://<user>.github.io/ai-extension/`).
+
 ## Adding the skipped sources later
 
 - **Reddit (free):** create a `script` app at `reddit.com/prefs/apps`, then
