@@ -46,6 +46,21 @@ budget-governed; every drop has a ledgered reason. Personas and thresholds
 live in `config/personas.json` / `config/discovery.json`. The mock connector
 is deterministic fake data — wire Apify for real pulls (PHASES.md, Phase 1).
 
+### Dashboard (the Phase 1 frontend)
+
+```sh
+python3 serve.py        # -> http://localhost:8013
+```
+
+Stdlib server + vanilla JS, no build step. Run the engine from the browser
+(seeds, categories, persona, price band, proven mode, AI backend), then
+explore: guardrail cards G1-G5 with live budget bars, lane filters, the
+ranked table, and a per-candidate drawer (sub-score bars, fee-by-fee
+economics, market snapshot, provenance — which query found it). The Ledger
+tab shows every drop with its reason and every AI seam call with the backend
+that answered it. API: `GET /api/config · /api/shortlist · /api/ledger`,
+`POST /api/run`.
+
 ## Layout
 
 ```

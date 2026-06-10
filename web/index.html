@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 1 · Discover — dashboard</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Phase 1 · Discover</h1>
+    <p class="sub">scouts → fan-out → filter → economics → fusion → lanes</p>
+  </div>
+  <div id="runMeta" class="meta"></div>
+</header>
+
+<div class="layout">
+
+  <aside class="panel" id="runPanel">
+    <h2>Run the engine</h2>
+
+    <label>Seed ideas <span class="hint">comma-separated</span>
+      <textarea id="seeds" rows="2" placeholder="spice rack, cable organizer"></textarea>
+    </label>
+
+    <label>Categories</label>
+    <div id="cats" class="checks"></div>
+
+    <div class="row2">
+      <label>Price min <input id="priceMin" type="number" value="10"></label>
+      <label>Price max <input id="priceMax" type="number" value="60"></label>
+    </div>
+
+    <label>Persona
+      <select id="persona"></select>
+    </label>
+
+    <div class="row2">
+      <label>Proven mode
+        <select id="provenMode">
+          <option value="both">both</option>
+          <option value="peak">peak</option>
+          <option value="growing">growing</option>
+        </select>
+      </label>
+      <label>AI seams
+        <select id="aiBackend">
+          <option value="heuristic">heuristic (fallback)</option>
+          <option value="claude_session">claude_session (queue)</option>
+          <option value="anthropic_api">anthropic_api</option>
+        </select>
+      </label>
+    </div>
+
+    <label>Exclude terms <span class="hint">optional</span>
+      <input id="exclude" placeholder="electric, licensed">
+    </label>
+
+    <button id="runBtn">▶ Run engine</button>
+    <div id="runStatus" class="status"></div>
+
+    <div class="legend">
+      <span><i class="dot safe"></i> Safe — proven, reviewed</span>
+      <span><i class="dot early"></i> Early — growing, thin reviews</span>
+      <span><i class="dot whitespace"></i> Whitespace — off-Amazon heat</span>
+    </div>
+  </aside>
+
+  <main>
+    <section id="guardrails" class="guardrails"></section>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="results">Results</button>
+      <button class="tab" data-tab="ledger">Ledger</button>
+      <span id="laneChips" class="chips"></span>
+    </nav>
+
+    <section id="results">
+      <div class="tablewrap">
+        <table id="candTable">
+          <thead><tr>
+            <th>#</th><th>lane</th><th>title</th><th class="num">price</th>
+            <th class="num">units/mo</th><th class="num">rev/mo</th>
+            <th class="num">margin</th><th class="num">score</th><th>marks</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+        <div id="empty" class="empty" hidden>
+          No run yet — set seeds on the left and hit <b>Run engine</b>.
+        </div>
+      </div>
+    </section>
+
+    <section id="ledger" hidden>
+      <div id="ledgerSummary" class="ledger-summary"></div>
+      <h3>Drops (every drop has a reason)</h3>
+      <div class="tablewrap">
+        <table id="dropTable">
+          <thead><tr><th>asin</th><th>title</th><th class="num">price</th><th>reason</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <h3>AI seams</h3>
+      <div class="tablewrap">
+        <table id="seamTable">
+          <thead><tr><th>seam</th><th>backend</th><th>result</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<aside id="drawer" hidden>
+  <button id="drawerClose" class="close">×</button>
+  <div id="drawerBody"></div>
+</aside>
+
+<script src="app.js"></script>
+</body>
+</html>

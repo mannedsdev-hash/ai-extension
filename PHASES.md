@@ -64,6 +64,8 @@ INPUT — RunContext (engine/models.py)
                        ▼
         CLI run_engine.py: shortlist + guardrail report (G1 budget · G2 data
         freshness · G3 compliance marks · G4 margin floor · G5 saturation)
+        WEB serve.py → web/ dashboard: run panel · guardrail cards · lane
+        filters · candidate drawer · ledger explorer (stdlib + vanilla JS)
                        ▼
         ➡️ Phase 2 input: data/runs/shortlist.json
 ```
