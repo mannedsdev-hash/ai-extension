@@ -1,0 +1,1112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Phase 1 · Discover — dashboard</title>
+<style>
+:root {
+  --bg: #0b1626; --card: #14233a; --card2: #1a2c47; --line: #24395c;
+  --text: #dce7f5; --dim: #8aa2c4; --accent: #38bdf8;
+  --safe: #22c55e; --early: #eab308; --whitespace: #3b82f6; --bad: #ef4444;
+}
+* { box-sizing: border-box; }
+body {
+  margin: 0; background: var(--bg); color: var(--text);
+  font: 14px/1.45 system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+header {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 16px 22px; border-bottom: 1px solid var(--line);
+}
+h1 { margin: 0; font-size: 22px; }
+h2 { margin: 0 0 12px; font-size: 16px; }
+h3 { margin: 18px 0 8px; font-size: 14px; color: var(--dim); }
+.sub { margin: 2px 0 0; color: var(--dim); font-size: 12px; }
+.meta { display: flex; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+.badge {
+  background: var(--card2); border: 1px solid var(--line); border-radius: 999px;
+  padding: 3px 10px; font-size: 12px; color: var(--dim);
+}
+.badge.warn { color: #fbbf24; border-color: #7c5e0c; }
+
+.layout { display: grid; grid-template-columns: 310px 1fr; gap: 18px; padding: 18px 22px; }
+.panel {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  padding: 16px; align-self: start; position: sticky; top: 14px;
+}
+label { display: block; margin: 10px 0 4px; font-size: 12px; color: var(--dim); }
+.hint { opacity: .6; }
+input, select, textarea {
+  width: 100%; margin-top: 4px; background: var(--bg); color: var(--text);
+  border: 1px solid var(--line); border-radius: 8px; padding: 7px 9px; font: inherit;
+}
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.checks { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+.checks label {
+  display: inline-flex; align-items: center; gap: 5px; margin: 0;
+  background: var(--bg); border: 1px solid var(--line); border-radius: 999px;
+  padding: 4px 10px; cursor: pointer; font-size: 12px; color: var(--text);
+}
+.checks input { width: auto; margin: 0; }
+.checks label:has(input:checked) { border-color: var(--accent); color: var(--accent); }
+button {
+  cursor: pointer; font: inherit; border: 0; border-radius: 8px;
+}
+#runBtn {
+  width: 100%; margin-top: 14px; padding: 10px; font-weight: 700;
+  background: var(--accent); color: #04263b;
+}
+#runBtn:disabled { opacity: .5; cursor: wait; }
+.status { margin-top: 8px; font-size: 12px; color: var(--dim); min-height: 16px; }
+.status.err { color: var(--bad); }
+.legend { display: grid; gap: 4px; margin-top: 14px; font-size: 12px; color: var(--dim); }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 99px; margin-right: 4px; }
+.dot.safe { background: var(--safe); } .dot.early { background: var(--early); }
+.dot.whitespace { background: var(--whitespace); }
+
+.guardrails { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+.gcard {
+  background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; min-width: 150px; flex: 1;
+}
+.gcard .k { font-size: 11px; color: var(--dim); }
+.gcard .v { font-size: 17px; font-weight: 700; margin-top: 2px; }
+.gcard .v.warn { color: #fbbf24; }
+.bar { height: 5px; background: var(--bg); border-radius: 99px; margin-top: 6px; overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.bar i.full { background: var(--bad); }
+.gcard .sub2 { font-size: 10px; color: var(--dim); margin-top: 3px; }
+
+.tabs { display: flex; gap: 8px; align-items: center; margin-bottom: 10px; }
+.tab {
+  background: var(--card); color: var(--dim); border: 1px solid var(--line);
+  padding: 7px 16px; border-radius: 8px;
+}
+.tab.active { color: var(--text); border-color: var(--accent); }
+.chips { margin-left: auto; display: flex; gap: 6px; }
+.chip {
+  background: var(--card); border: 1px solid var(--line); color: var(--dim);
+  border-radius: 999px; padding: 4px 12px; font-size: 12px;
+}
+.chip.active { color: var(--text); border-color: var(--accent); }
+
+.tablewrap {
+  background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+  overflow: auto;
+}
+table { width: 100%; border-collapse: collapse; }
+th, td { padding: 9px 12px; text-align: left; border-bottom: 1px solid var(--line); }
+th { font-size: 11px; text-transform: uppercase; letter-spacing: .04em; color: var(--dim); }
+td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
+tbody tr { cursor: pointer; }
+tbody tr:hover { background: var(--card2); }
+.lane { font-weight: 700; font-size: 12px; }
+.lane.safe { color: var(--safe); } .lane.early { color: var(--early); }
+.lane.whitespace { color: var(--whitespace); }
+.mark {
+  display: inline-block; background: #3b2c10; color: #fbbf24; border-radius: 6px;
+  font-size: 11px; padding: 1px 7px; margin-right: 4px;
+}
+.scorebar { display: inline-block; width: 54px; height: 5px; background: var(--bg);
+  border-radius: 99px; margin-left: 7px; vertical-align: 2px; overflow: hidden; }
+.scorebar i { display: block; height: 100%; background: var(--accent); }
+.empty { padding: 40px; text-align: center; color: var(--dim); }
+
+.ledger-summary { display: flex; gap: 8px; flex-wrap: wrap; }
+.ledger-summary .badge { font-size: 12px; }
+
+#drawer {
+  position: fixed; top: 0; right: 0; width: min(440px, 92vw); height: 100vh;
+  background: var(--card); border-left: 1px solid var(--line); padding: 20px;
+  overflow: auto; box-shadow: -18px 0 40px rgba(0,0,0,.45); z-index: 10;
+}
+#drawer .close {
+  position: absolute; top: 10px; right: 12px; background: none; color: var(--dim);
+  font-size: 22px;
+}
+#drawer h2 { padding-right: 26px; }
+.kv { display: grid; grid-template-columns: 130px 1fr; gap: 4px 10px; font-size: 13px; margin: 10px 0; }
+.kv .k { color: var(--dim); }
+.sbar { margin: 7px 0; }
+.sbar .lab { display: flex; justify-content: space-between; font-size: 12px; color: var(--dim); }
+.sbar .track { height: 7px; background: var(--bg); border-radius: 99px; margin-top: 3px; overflow: hidden; }
+.sbar .track i { display: block; height: 100%; background: var(--accent); }
+.prov { font-size: 11px; color: var(--dim); }
+.prov code { background: var(--bg); padding: 1px 6px; border-radius: 6px; margin: 0 4px 4px 0; display: inline-block; }
+.rationale {
+  background: var(--card2); border-left: 3px solid var(--accent); border-radius: 6px;
+  padding: 9px 11px; font-size: 13px; margin: 10px 0;
+}
+.compliance { background: #2b1d10; border-left: 3px solid #fbbf24; border-radius: 6px;
+  padding: 9px 11px; font-size: 12px; margin: 8px 0; }
+
+@media (max-width: 860px) { .layout { grid-template-columns: 1fr; } .panel { position: static; } }
+
+</style>
+</head>
+<body>
+
+<header>
+  <div>
+    <h1>Phase 1 · Discover</h1>
+    <p class="sub">scouts → fan-out → filter → economics → fusion → lanes</p>
+  </div>
+  <div id="runMeta" class="meta"></div>
+</header>
+
+<div class="layout">
+
+  <aside class="panel" id="runPanel">
+    <h2>Run the engine</h2>
+
+    <label>Seed ideas <span class="hint">comma-separated</span>
+      <textarea id="seeds" rows="2" placeholder="spice rack, cable organizer"></textarea>
+    </label>
+
+    <label>Categories</label>
+    <div id="cats" class="checks"></div>
+
+    <div class="row2">
+      <label>Price min <input id="priceMin" type="number" value="10"></label>
+      <label>Price max <input id="priceMax" type="number" value="60"></label>
+    </div>
+
+    <label>Persona
+      <select id="persona"></select>
+    </label>
+
+    <div class="row2">
+      <label>Proven mode
+        <select id="provenMode">
+          <option value="both">both</option>
+          <option value="peak">peak</option>
+          <option value="growing">growing</option>
+        </select>
+      </label>
+      <label>AI seams
+        <select id="aiBackend">
+          <option value="heuristic">heuristic (fallback)</option>
+          <option value="claude_session">claude_session (queue)</option>
+          <option value="anthropic_api">anthropic_api</option>
+        </select>
+      </label>
+    </div>
+
+    <label>Exclude terms <span class="hint">optional</span>
+      <input id="exclude" placeholder="electric, licensed">
+    </label>
+
+    <button id="runBtn">▶ Run engine</button>
+    <div id="runStatus" class="status"></div>
+
+    <div class="legend">
+      <span><i class="dot safe"></i> Safe — proven, reviewed</span>
+      <span><i class="dot early"></i> Early — growing, thin reviews</span>
+      <span><i class="dot whitespace"></i> Whitespace — off-Amazon heat</span>
+    </div>
+  </aside>
+
+  <main>
+    <section id="guardrails" class="guardrails"></section>
+
+    <nav class="tabs">
+      <button class="tab active" data-tab="results">Results</button>
+      <button class="tab" data-tab="ledger">Ledger</button>
+      <span id="laneChips" class="chips"></span>
+    </nav>
+
+    <section id="results">
+      <div class="tablewrap">
+        <table id="candTable">
+          <thead><tr>
+            <th>#</th><th>lane</th><th>title</th><th class="num">price</th>
+            <th class="num">units/mo</th><th class="num">rev/mo</th>
+            <th class="num">margin</th><th class="num">score</th><th>marks</th>
+          </tr></thead>
+          <tbody></tbody>
+        </table>
+        <div id="empty" class="empty" hidden>
+          No run yet — set seeds on the left and hit <b>Run engine</b>.
+        </div>
+      </div>
+    </section>
+
+    <section id="ledger" hidden>
+      <div id="ledgerSummary" class="ledger-summary"></div>
+      <h3>Drops (every drop has a reason)</h3>
+      <div class="tablewrap">
+        <table id="dropTable">
+          <thead><tr><th>asin</th><th>title</th><th class="num">price</th><th>reason</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <h3>AI seams</h3>
+      <div class="tablewrap">
+        <table id="seamTable">
+          <thead><tr><th>seam</th><th>backend</th><th>result</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<aside id="drawer" hidden>
+  <button id="drawerClose" class="close">×</button>
+  <div id="drawerBody"></div>
+</aside>
+
+<script>
+window.__ENGINE_DATA__ = {
+  "run_id": "20260610-143820",
+  "connector": "mock",
+  "ai_backend": "heuristic",
+  "ctx": {
+    "seeds": [
+      "spice rack",
+      "cable organizer"
+    ],
+    "categories": [
+      "kitchen",
+      "office_products"
+    ],
+    "asin_seeds": [],
+    "exclude_terms": [],
+    "persona": "default",
+    "price_min": 10.0,
+    "price_max": 60.0,
+    "proven_mode": "both",
+    "budget_caps": {},
+    "shortlist_size": 10
+  },
+  "pool": {
+    "spice rack": "seed",
+    "cable organizer": "seed",
+    "compact spice rack": "concept",
+    "travel spice rack": "concept",
+    "spice rack for kitchen": "concept",
+    "compact cable organizer": "concept",
+    "travel cable organizer": "concept",
+    "cable organizer for kitchen": "concept"
+  },
+  "whitespace_terms": [
+    "spice rack",
+    "compact spice rack",
+    "compact cable organizer",
+    "travel cable organizer",
+    "cable organizer for kitchen"
+  ],
+  "signals": {
+    "spice rack": {
+      "agreement": 3,
+      "strength": 45.6,
+      "mentions": 4855,
+      "evidence": [
+        "tiktok:+51.7%",
+        "reddit:+35.1%",
+        "pinterest:+50.0%"
+      ]
+    },
+    "cable organizer": {
+      "agreement": 1,
+      "strength": 26.9,
+      "mentions": 18431,
+      "evidence": [
+        "reddit:+56.3%"
+      ]
+    },
+    "compact spice rack": {
+      "agreement": 2,
+      "strength": 28.6,
+      "mentions": 13679,
+      "evidence": [
+        "tiktok:+43.9%",
+        "reddit:+36.5%"
+      ]
+    },
+    "travel spice rack": {
+      "agreement": 1,
+      "strength": 10.4,
+      "mentions": 11829,
+      "evidence": [
+        "tiktok:+35.8%"
+      ]
+    },
+    "spice rack for kitchen": {
+      "agreement": 1,
+      "strength": 23.9,
+      "mentions": 20508,
+      "evidence": [
+        "reddit:+55.7%"
+      ]
+    },
+    "compact cable organizer": {
+      "agreement": 2,
+      "strength": 30.2,
+      "mentions": 13104,
+      "evidence": [
+        "tiktok:+49.9%",
+        "pinterest:+32.3%"
+      ]
+    },
+    "travel cable organizer": {
+      "agreement": 3,
+      "strength": 37.5,
+      "mentions": 13990,
+      "evidence": [
+        "tiktok:+19.0%",
+        "reddit:+38.2%",
+        "pinterest:+55.2%"
+      ]
+    },
+    "cable organizer for kitchen": {
+      "agreement": 2,
+      "strength": 35.1,
+      "mentions": 15929,
+      "evidence": [
+        "reddit:+56.2%",
+        "pinterest:+46.2%"
+      ]
+    }
+  },
+  "guardrails": {
+    "G1_budget": {
+      "llm_calls": {
+        "spent": 0,
+        "cap": 20,
+        "denied": 0
+      },
+      "social_calls": {
+        "spent": 24,
+        "cap": 24,
+        "denied": 0
+      },
+      "trend_checks": {
+        "spent": 25,
+        "cap": 25,
+        "denied": 0
+      },
+      "connector_calls": {
+        "spent": 90,
+        "cap": 90,
+        "denied": 1
+      }
+    },
+    "G2_data": "MOCK DATA \u2014 not real market data; wire the apify connector",
+    "G3_size_or_compliance_marked": 150,
+    "G4_below_margin_floor": 0,
+    "G5_saturated_in_shortlist": 3
+  },
+  "total_ranked": 290,
+  "candidates": [
+    {
+      "raw": {
+        "asin": "B0C696217E",
+        "parent_asin": "B0C696217E",
+        "title": "TidyPeak Mini Compact Cable Organizer Foldable",
+        "category": "kitchen",
+        "price": 12.96,
+        "bsr": 1269,
+        "rating": 4.3,
+        "reviews_count": 1983,
+        "sellers_count": 7,
+        "weight_oz": 4.8,
+        "longest_side_in": 12.1,
+        "source": "mock",
+        "found_by": [
+          "search:mini compact cable organizer@kitchen"
+        ],
+        "trend": "peak"
+      },
+      "origin": "seed",
+      "marks": [],
+      "compliance_notes": [],
+      "economics": {
+        "units_per_month": 259,
+        "revenue_per_month": 3356.64,
+        "referral_fee": 1.94,
+        "fba_fee": 3.9,
+        "landed_cost_est": 3.24,
+        "margin_pct": 0.2994,
+        "breakeven_price": 8.4,
+        "fba_ready": true
+      },
+      "sub_scores": {
+        "velocity": 86.3,
+        "buzz": 60.4,
+        "idea_affinity": 100,
+        "low_competition": 16.0,
+        "agreement": 66.7,
+        "supply_gap": 46.0
+      },
+      "score": 60.4,
+      "lane": "safe",
+      "rationale": "Lane safe: strongest on idea_affinity=100 and velocity=86; est. 259 units/mo at 30% margin.",
+      "asin": "B0C696217E"
+    },
+    {
+      "raw": {
+        "asin": "B0D7355B7B",
+        "parent_asin": "B0D7355B7B",
+        "title": "HoldFast Mini Compact Spice Rack 2-Pack",
+        "category": "office_products",
+        "price": 31.81,
+        "bsr": 985,
+        "rating": 3.9,
+        "reviews_count": 1699,
+        "sellers_count": 12,
+        "weight_oz": 14.9,
+        "longest_side_in": 5.7,
+        "source": "mock",
+        "found_by": [
+          "search:mini compact spice rack@office_products"
+        ],
+        "trend": "peak"
+      },
+      "origin": "seed",
+      "marks": [],
+      "compliance_notes": [],
+      "economics": {
+        "units_per_month": 214,
+        "revenue_per_month": 6807.34,
+        "referral_fee": 4.77,
+        "fba_fee": 4.55,
+        "landed_cost_est": 7.95,
+        "margin_pct": 0.4571,
+        "breakeven_price": 14.71,
+        "fba_ready": true
+      },
+      "sub_scores": {
+        "velocity": 71.3,
+        "buzz": 91.2,
+        "idea_affinity": 100,
+        "low_competition": 6.0,
+        "agreement": 100.0,
+        "supply_gap": 14.3
+      },
+      "score": 57.0,
+      "lane": "safe",
+      "rationale": "Lane safe: strongest on idea_affinity=100 and agreement=100; est. 214 units/mo at 46% margin.",
+      "asin": "B0D7355B7B"
+    },
+    {
+      "raw": {
+        "asin": "B05B6C5C9A",
+        "parent_asin": "B0D66ED06C",
+        "title": "Pakka Travel Spice Rack Adjustable",
+        "category": "office_products",
+        "price": 10.62,
+        "bsr": 93421,
+        "rating": 3.6,
+        "reviews_count": 109,
+        "sellers_count": 2,
+        "weight_oz": 3.6,
+        "longest_side_in": 7.7,
+        "source": "mock",
+        "found_by": [
+          "search:travel spice rack@office_products"
+        ],
+        "trend": "unknown"
+      },
+      "origin": "seed",
+      "marks": [],
+      "compliance_notes": [],
+      "economics": {
+        "units_per_month": 4,
+        "revenue_per_month": 42.48,
+        "referral_fee": 1.59,
+        "fba_fee": 3.68,
+        "landed_cost_est": 2.65,
+        "margin_pct": 0.2542,
+        "breakeven_price": 7.45,
+        "fba_ready": true
+      },
+      "sub_scores": {
+        "velocity": 1.3,
+        "buzz": 91.2,
+        "idea_affinity": 100,
+        "low_competition": 86.5,
+        "agreement": 100.0,
+        "supply_gap": 1.2
+      },
+      "score": 56.5,
+      "lane": "safe",
+      "rationale": "Lane safe: strongest on idea_affinity=100 and agreement=100; est. 4 units/mo at 25% margin.",
+      "asin": "B05B6C5C9A"
+    },
+    {
+      "raw": {
+        "asin": "B069E0C41A",
+        "parent_asin": "B069E0C41A",
+        "title": "Pakka Mini Spice Rack Bamboo",
+        "category": "kitchen",
+        "price": 24.77,
+        "bsr": 2470,
+        "rating": 4.7,
+        "reviews_count": 640,
+        "sellers_count": 10,
+        "weight_oz": 11.2,
+        "longest_side_in": 9.2,
+        "source": "mock",
+        "found_by": [
+          "search:mini spice rack@kitchen"
+        ],
+        "trend": "unknown"
+      },
+      "origin": "seed",
+      "marks": [],
+      "compliance_notes": [],
+      "economics": {
+        "units_per_month": 145,
+        "revenue_per_month": 3591.65,
+        "referral_fee": 3.72,
+        "fba_fee": 4.15,
+        "landed_cost_est": 6.19,
+        "margin_pct": 0.4324,
+        "breakeven_price": 12.16,
+        "fba_ready": true
+      },
+      "sub_scores": {
+        "velocity": 48.3,
+        "buzz": 91.2,
+        "idea_affinity": 100,
+        "low_competition": 24.0,
+        "agreement": 100.0,
+        "supply_gap": 16.1
+      },
+      "score": 56.4,
+      "lane": "safe",
+      "rationale": "Lane safe: strongest on idea_affinity=100 and agreement=100; est. 145 units/mo at 43% margin.",
+      "asin": "B069E0C41A"
+    },
+    {
+      "raw": {
+        "asin": "B03633B9CF",
+        "parent_asin": "B03633B9CF",
+        "title": "Maven&Co Spice Rack For Kitchen 2-Pack",
+        "category": "office_products",
+        "price": 33.89,
+        "bsr": 4423,
+        "rating": 4.0,
+        "reviews_count": 255,
+        "sellers_count": 9,
+        "weight_oz": 3.2,
+        "longest_side_in": 15.6,
+        "source": "mock",
+        "found_by": [
+          "search:spice rack for kitchen@office_products"
+        ],
+        "trend": "unknown"
+      },
+      "origin": "seed",
+      "marks": [],
+      "compliance_notes": [],
+      "economics": {
+        "units_per_month": 60,
+        "revenue_per_month": 2033.4,
+        "referral_fee": 5.08,
+        "fba_fee": 3.68,
+        "landed_cost_est": 8.47,
+        "margin_pct": 0.4916,
+        "breakeven_price": 14.29,
+        "fba_ready": true
+      },
+      "sub_scores": {
+        "velocity": 20.0,
+        "buzz": 91.2,
+        "idea_affinity": 100,
+        "low_competition": 59.7,
+        "agreement": 100.0,
+        "supply_gap": 8.0
+      },
+      "score": 56.2,
+      "lane": "safe",
+      "rationale": "Lane safe: strongest on idea_affinity=100 and agreement=100; est. 60 units/mo at 49% margin.",
+      "asin": "B03633B9CF"
+    },
+    {
+      "raw": {
+        "asin": "B09D0AB410",
+        "parent_asin": "B09D0AB410",
+        "title": "Lumare Travel Cable Organizer Organizer Foldable",
+        "category": "kitchen",
+        "price": 21.01,
+        "bsr": 10681,
+        "rating": 3.7,
+        "reviews_count": 241,
+        "sellers_count": 2,
+        "weight_oz": 47.6,
+        "longest_side_in": 14.7,
+        "source": "mock",
+        "found_by": [
+          "search:travel cable organizer organizer@kitchen"
+        ],
+        "trend": "unknown"
+      },
+      "origin": "seed",
+      "marks": [],
+      "compliance_notes": [],
+      "economics": {
+        "units_per_month": 40,
+        "revenue_per_month": 840.4,
+        "referral_fee": 3.15,
+        "fba_fee": 6.06,
+        "landed_cost_est": 5.25,
+        "margin_pct": 0.3118,
+        "breakeven_price": 13.31,
+        "fba_ready": true
+      },
+      "sub_scores": {
+        "velocity": 13.3,
+        "buzz": 75.0,
+        "idea_affinity": 100,
+        "low_competition": 74.9,
+        "agreement": 100.0,
+        "supply_gap": 11.6
+      },
+      "score": 56.2,
+      "lane": "safe",
+      "rationale": "Lane safe: strongest on idea_affinity=100 and agreement=100; est. 40 units/mo at 31% margin.",
+      "asin": "B09D0AB410"
+    },
+    {
+      "raw": {
+        "asin": "B0BD3341FE",
+        "parent_asin": "B0BD3341FE",
+        "title": "HoldFast Mini Spice Rack For Kitchen Adjustable",
+        "category": "kitchen",
+        "price": 37.29,
+        "bsr": 35417,
+        "rating": 4.4,
+        "reviews_count": 200,
+        "sellers_count": 2,
+        "weight_oz": 40.7,
+        "longest_side_in": 9.9,
+        "source": "mock",
+        "found_by": [
+          "search:mini spice rack for kitchen@kitchen"
+        ],
+        "trend": "unknown"
+      },
+      "origin": "seed",
+      "marks": [],
+      "compliance_notes": [],
+      "economics": {
+        "units_per_month": 14,
+        "revenue_per_month": 522.06,
+        "referral_fee": 5.59,
+        "fba_fee": 6.06,
+        "landed_cost_est": 9.32,
+        "margin_pct": 0.4377,
+        "breakeven_price": 18.09,
+        "fba_ready": true
+      },
+      "sub_scores": {
+        "velocity": 4.7,
+        "buzz": 91.2,
+        "idea_affinity": 100,
+        "low_competition": 78.5,
+        "agreement": 100.0,
+        "supply_gap": 4.0
+      },
+      "score": 56.1,
+      "lane": "safe",
+      "rationale": "Lane safe: strongest on idea_affinity=100 and agreement=100; est. 14 units/mo at 44% margin.",
+      "asin": "B0BD3341FE"
+    },
+    {
+      "raw": {
+        "asin": "B0D321252F",
+        "parent_asin": "B0D321252F",
+        "title": "Brioka Spice Rack For Kitchen Stainless",
+        "category": "kitchen",
+        "price": 41.31,
+        "bsr": 1425,
+        "rating": 4.2,
+        "reviews_count": 1518,
+        "sellers_count": 14,
+        "weight_oz": 36.3,
+        "longest_side_in": 6.9,
+        "source": "mock",
+        "found_by": [
+          "search:spice rack for kitchen@kitchen"
+        ],
+        "trend": "growing"
+      },
+      "origin": "seed",
+      "marks": [],
+      "compliance_notes": [],
+      "economics": {
+        "units_per_month": 234,
+        "revenue_per_month": 9666.54,
+        "referral_fee": 6.2,
+        "fba_fee": 6.06,
+        "landed_cost_est": 10.33,
+        "margin_pct": 0.4532,
+        "breakeven_price": 19.28,
+        "fba_ready": true
+      },
+      "sub_scores": {
+        "velocity": 78.0,
+        "buzz": 91.2,
+        "idea_affinity": 100,
+        "low_competition": 2.0,
+        "agreement": 100.0,
+        "supply_gap": 5.2
+      },
+      "score": 55.7,
+      "lane": "safe",
+      "rationale": "Lane safe: strongest on idea_affinity=100 and agreement=100; est. 234 units/mo at 45% margin.",
+      "asin": "B0D321252F"
+    },
+    {
+      "raw": {
+        "asin": "B07B068C17",
+        "parent_asin": "B07B068C17",
+        "title": "Strivo Mini Travel Spice Rack with Lid",
+        "category": "office_products",
+        "price": 27.62,
+        "bsr": 129919,
+        "rating": 3.8,
+        "reviews_count": 75,
+        "sellers_count": 5,
+        "weight_oz": 46.8,
+        "longest_side_in": 5.8,
+        "source": "mock",
+        "found_by": [
+          "search:mini travel spice rack@office_products"
+        ],
+        "trend": "unknown"
+      },
+      "origin": "seed",
+      "marks": [],
+      "compliance_notes": [],
+      "economics": {
+        "units_per_month": 3,
+        "revenue_per_month": 82.86,
+        "referral_fee": 4.14,
+        "fba_fee": 6.06,
+        "landed_cost_est": 6.91,
+        "margin_pct": 0.3805,
+        "breakeven_price": 15.26,
+        "fba_ready": true
+      },
+      "sub_scores": {
+        "velocity": 1.0,
+        "buzz": 91.2,
+        "idea_affinity": 100,
+        "low_competition": 83.4,
+        "agreement": 100.0,
+        "supply_gap": 0.7
+      },
+      "score": 55.7,
+      "lane": "safe",
+      "rationale": "Lane safe: strongest on idea_affinity=100 and agreement=100; est. 3 units/mo at 38% margin.",
+      "asin": "B07B068C17"
+    },
+    {
+      "raw": {
+        "asin": "B0AD4B3390",
+        "parent_asin": "B0AD4B3390",
+        "title": "HoldFast Spice Rack For Kitchen Foldable",
+        "category": "office_products",
+        "price": 26.66,
+        "bsr": 18978,
+        "rating": 4.6,
+        "reviews_count": 220,
+        "sellers_count": 4,
+        "weight_oz": 6.7,
+        "longest_side_in": 4.8,
+        "source": "mock",
+        "found_by": [
+          "search:spice rack for kitchen@office_products"
+        ],
+        "trend": "unknown"
+      },
+      "origin": "seed",
+      "marks": [],
+      "compliance_notes": [],
+      "economics": {
+        "units_per_month": 17,
+        "revenue_per_month": 453.22,
+        "referral_fee": 4.0,
+        "fba_fee": 3.9,
+        "landed_cost_est": 6.67,
+        "margin_pct": 0.4535,
+        "breakeven_price": 12.44,
+        "fba_ready": true
+      },
+      "sub_scores": {
+        "velocity": 5.7,
+        "buzz": 91.2,
+        "idea_affinity": 100,
+        "low_competition": 72.8,
+        "agreement": 100.0,
+        "supply_gap": 4.2
+      },
+      "score": 55.2,
+      "lane": "safe",
+      "rationale": "Lane safe: strongest on idea_affinity=100 and agreement=100; est. 17 units/mo at 45% margin.",
+      "asin": "B0AD4B3390"
+    }
+  ]
+};
+window.__ENGINE_LEDGER__ = [{"ts": 1781102300.4024112, "run_id": "20260610-143820", "kind": "run_started", "ctx": {"seeds": ["spice rack", "cable organizer"], "categories": ["kitchen", "office_products"], "asin_seeds": [], "exclude_terms": [], "persona": "default", "price_min": 10.0, "price_max": 60.0, "proven_mode": "both", "budget_caps": {}, "shortlist_size": 10}, "connector": "mock", "ai": "heuristic"}, {"ts": 1781102300.4079914, "run_id": "20260610-143820", "kind": "ai_seam", "seam": "concept_expand", "backend": "heuristic", "result_summary": "{'concepts': [{'term': 'compact spice rack', 'from_seed': 'spice rack'}, {'term': 'travel spice rack', 'from_seed': 'spice rack'}, {'term': 'spice rack for kitchen', 'from_seed': 'spice rack'}, {'term': 'compact cable organizer', 'from_seed': 'cable organizer'}, {'term': 'travel cable organizer', 'f"}, {"ts": 1781102300.408073, "run_id": "20260610-143820", "kind": "custom_scout", "pool": {"spice rack": "seed", "cable organizer": "seed", "compact spice rack": "concept", "travel spice rack": "concept", "spice rack for kitchen": "concept", "compact cable organizer": "concept", "travel cable organizer": "concept", "cable organizer for kitchen": "concept"}}, {"ts": 1781102300.4085472, "run_id": "20260610-143820", "kind": "ai_seam", "seam": "whitespace_synth", "backend": "heuristic", "result_summary": "{'concepts': [{'term': 'spice rack', 'angle': 'strong off-Amazon interest, thin on-Amazon supply'}, {'term': 'compact spice rack', 'angle': 'strong off-Amazon interest, thin on-Amazon supply'}, {'term': 'compact cable organizer', 'angle': 'strong off-Amazon interest, thin on-Amazon supply'}, {'term'"}, {"ts": 1781102300.4085646, "run_id": "20260610-143820", "kind": "social_scout", "signals": {"spice rack": {"agreement": 3, "strength": 45.6, "mentions": 4855, "evidence": ["tiktok:+51.7%", "reddit:+35.1%", "pinterest:+50.0%"]}, "cable organizer": {"agreement": 1, "strength": 26.9, "mentions": 18431, "evidence": ["reddit:+56.3%"]}, "compact spice rack": {"agreement": 2, "strength": 28.6, "mentions": 13679, "evidence": ["tiktok:+43.9%", "reddit:+36.5%"]}, "travel spice rack": {"agreement": 1, "strength": 10.4, "mentions": 11829, "evidence": ["tiktok:+35.8%"]}, "spice rack for kitchen": {"agreement": 1, "strength": 23.9, "mentions": 20508, "evidence": ["reddit:+55.7%"]}, "compact cable organizer": {"agreement": 2, "strength": 30.2, "mentions": 13104, "evidence": ["tiktok:+49.9%", "pinterest:+32.3%"]}, "travel cable organizer": {"agreement": 3, "strength": 37.5, "mentions": 13990, "evidence": ["tiktok:+19.0%", "reddit:+38.2%", "pinterest:+55.2%"]}, "cable organizer for kitchen": {"agreement": 2, "strength": 35.1, "mentions": 15929, "evidence": ["reddit:+56.2%", "pinterest:+46.2%"]}}, "whitespace": ["spice rack", "compact spice rack", "compact cable organizer", "travel cable organizer", "cable organizer for kitchen"]}, {"ts": 1781102300.4142513, "run_id": "20260610-143820", "kind": "budget_deny", "resource": "connector_calls", "cap": 90, "spent": 90, "note": "search:cable organizer for kitchen set"}, {"ts": 1781102300.4153042, "run_id": "20260610-143820", "kind": "resolver_done", "raw_hits": 620, "unique_parents": 302}, {"ts": 1781102300.4157927, "run_id": "20260610-143820", "kind": "proven_scout", "mode": "both", "trend_counts": {"growing": 7, "peak": 15, "declining": 2, "flat": 1}, "dropped_declining": 2}, {"ts": 1781102300.4159625, "run_id": "20260610-143820", "kind": "candidate_dropped", "asin": "B0019B027B", "reason": "price_out_of_band", "title": "Pakka Mini Spice Rack Slim", "price": 9.94}, {"ts": 1781102300.416001, "run_id": "20260610-143820", "kind": "candidate_dropped", "asin": "B078D229B7", "reason": "price_out_of_band", "title": "HoldFast Cable Organizer Bamboo", "price": 9.69}, {"ts": 1781102300.4161508, "run_id": "20260610-143820", "kind": "candidate_dropped", "asin": "B0C2051B56", "reason": "price_out_of_band", "title": "Norvik Mini Compact Spice Rack Mini", "price": 9.84}, {"ts": 1781102300.4161677, "run_id": "20260610-143820", "kind": "candidate_dropped", "asin": "B041426B0D", "reason": "price_out_of_band", "title": "Pakka Cable Organizer with Lid", "price": 9.35}, {"ts": 1781102300.4162128, "run_id": "20260610-143820", "kind": "candidate_dropped", "asin": "B07691E5BE", "reason": "price_out_of_band", "title": "Brioka Mini Compact Spice Rack Bamboo", "price": 9.45}, {"ts": 1781102300.4163644, "run_id": "20260610-143820", "kind": "candidate_dropped", "asin": "B098DF06A1", "reason": "price_out_of_band", "title": "Strivo Compact Cable Organizer For Small Spaces Mini", "price": 9.05}, {"ts": 1781102300.416371, "run_id": "20260610-143820", "kind": "candidate_dropped", "asin": "B0EDBCE323", "reason": "price_out_of_band", "title": "HoldFast Spice Rack For Kitchen Slim", "price": 9.3}, {"ts": 1781102300.4166443, "run_id": "20260610-143820", "kind": "candidate_dropped", "asin": "B0E020957E", "reason": "price_out_of_band", "title": "HoldFast Cable Organizer For Kitchen For Small Spaces Large", "price": 9.03}, {"ts": 1781102300.4167557, "run_id": "20260610-143820", "kind": "candidate_dropped", "asin": "B04C6ACC28", "reason": "price_out_of_band", "title": "HoldFast Cable Organizer For Kitchen Large", "price": 9.77}, {"ts": 1781102300.416887, "run_id": "20260610-143820", "kind": "candidate_dropped", "asin": "B055103157", "reason": "price_out_of_band", "title": "Brioka Mini Travel Spice Rack Stainless", "price": 9.82}, {"ts": 1781102300.4169972, "run_id": "20260610-143820", "kind": "rough_filter", "kept": 290, "drops": {"price_out_of_band": 10}}, {"ts": 1781102300.4183404, "run_id": "20260610-143820", "kind": "economics_done", "estimated": 290}, {"ts": 1781102300.4210284, "run_id": "20260610-143820", "kind": "ai_seam", "seam": "rank_rationale", "backend": "heuristic", "result_summary": "{'rationale': 'Lane safe: strongest on idea_affinity=100 and velocity=86; est. 259 units/mo at 30% margin.'}"}, {"ts": 1781102300.421045, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0C696217E", "rank": 1, "score": 60.4, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 86.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 16.0, "agreement": 66.7, "supply_gap": 46.0}, "margin_pct": 0.2994, "units_per_month": 259, "found_by": ["search:mini compact cable organizer@kitchen"]}, {"ts": 1781102300.421078, "run_id": "20260610-143820", "kind": "ai_seam", "seam": "rank_rationale", "backend": "heuristic", "result_summary": "{'rationale': 'Lane safe: strongest on idea_affinity=100 and agreement=100; est. 214 units/mo at 46% margin.'}"}, {"ts": 1781102300.4210863, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D7355B7B", "rank": 2, "score": 57.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 71.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 6.0, "agreement": 100.0, "supply_gap": 14.3}, "margin_pct": 0.4571, "units_per_month": 214, "found_by": ["search:mini compact spice rack@office_products"]}, {"ts": 1781102300.421119, "run_id": "20260610-143820", "kind": "ai_seam", "seam": "rank_rationale", "backend": "heuristic", "result_summary": "{'rationale': 'Lane safe: strongest on idea_affinity=100 and agreement=100; est. 4 units/mo at 25% margin.'}"}, {"ts": 1781102300.4211257, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B05B6C5C9A", "rank": 3, "score": 56.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 86.5, "agreement": 100.0, "supply_gap": 1.2}, "margin_pct": 0.2542, "units_per_month": 4, "found_by": ["search:travel spice rack@office_products"]}, {"ts": 1781102300.42115, "run_id": "20260610-143820", "kind": "ai_seam", "seam": "rank_rationale", "backend": "heuristic", "result_summary": "{'rationale': 'Lane safe: strongest on idea_affinity=100 and agreement=100; est. 145 units/mo at 43% margin.'}"}, {"ts": 1781102300.4211564, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B069E0C41A", "rank": 4, "score": 56.4, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 48.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 24.0, "agreement": 100.0, "supply_gap": 16.1}, "margin_pct": 0.4324, "units_per_month": 145, "found_by": ["search:mini spice rack@kitchen"]}, {"ts": 1781102300.4212763, "run_id": "20260610-143820", "kind": "ai_seam", "seam": "rank_rationale", "backend": "heuristic", "result_summary": "{'rationale': 'Lane safe: strongest on idea_affinity=100 and agreement=100; est. 60 units/mo at 49% margin.'}"}, {"ts": 1781102300.4212883, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B03633B9CF", "rank": 5, "score": 56.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 20.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 59.7, "agreement": 100.0, "supply_gap": 8.0}, "margin_pct": 0.4916, "units_per_month": 60, "found_by": ["search:spice rack for kitchen@office_products"]}, {"ts": 1781102300.4213228, "run_id": "20260610-143820", "kind": "ai_seam", "seam": "rank_rationale", "backend": "heuristic", "result_summary": "{'rationale': 'Lane safe: strongest on idea_affinity=100 and agreement=100; est. 40 units/mo at 31% margin.'}"}, {"ts": 1781102300.42133, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B09D0AB410", "rank": 6, "score": 56.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 13.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 74.9, "agreement": 100.0, "supply_gap": 11.6}, "margin_pct": 0.3118, "units_per_month": 40, "found_by": ["search:travel cable organizer organizer@kitchen"]}, {"ts": 1781102300.4213552, "run_id": "20260610-143820", "kind": "ai_seam", "seam": "rank_rationale", "backend": "heuristic", "result_summary": "{'rationale': 'Lane safe: strongest on idea_affinity=100 and agreement=100; est. 14 units/mo at 44% margin.'}"}, {"ts": 1781102300.4213622, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0BD3341FE", "rank": 7, "score": 56.1, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 4.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 78.5, "agreement": 100.0, "supply_gap": 4.0}, "margin_pct": 0.4377, "units_per_month": 14, "found_by": ["search:mini spice rack for kitchen@kitchen"]}, {"ts": 1781102300.421386, "run_id": "20260610-143820", "kind": "ai_seam", "seam": "rank_rationale", "backend": "heuristic", "result_summary": "{'rationale': 'Lane safe: strongest on idea_affinity=100 and agreement=100; est. 234 units/mo at 45% margin.'}"}, {"ts": 1781102300.4213924, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D321252F", "rank": 8, "score": 55.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 78.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 2.0, "agreement": 100.0, "supply_gap": 5.2}, "margin_pct": 0.4532, "units_per_month": 234, "found_by": ["search:spice rack for kitchen@kitchen"]}, {"ts": 1781102300.4214146, "run_id": "20260610-143820", "kind": "ai_seam", "seam": "rank_rationale", "backend": "heuristic", "result_summary": "{'rationale': 'Lane safe: strongest on idea_affinity=100 and agreement=100; est. 3 units/mo at 38% margin.'}"}, {"ts": 1781102300.4214206, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B07B068C17", "rank": 9, "score": 55.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 83.4, "agreement": 100.0, "supply_gap": 0.7}, "margin_pct": 0.3805, "units_per_month": 3, "found_by": ["search:mini travel spice rack@office_products"]}, {"ts": 1781102300.4214423, "run_id": "20260610-143820", "kind": "ai_seam", "seam": "rank_rationale", "backend": "heuristic", "result_summary": "{'rationale': 'Lane safe: strongest on idea_affinity=100 and agreement=100; est. 17 units/mo at 45% margin.'}"}, {"ts": 1781102300.4214482, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0AD4B3390", "rank": 10, "score": 55.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 5.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 72.8, "agreement": 100.0, "supply_gap": 4.2}, "margin_pct": 0.4535, "units_per_month": 17, "found_by": ["search:spice rack for kitchen@office_products"]}, {"ts": 1781102300.421457, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0CDF32F63", "rank": 11, "score": 55.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 79.7, "agreement": 100.0, "supply_gap": 1.1}, "margin_pct": 0.4937, "units_per_month": 5, "found_by": ["search:mini spice rack for kitchen@kitchen"]}, {"ts": 1781102300.4214654, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0220DD614", "rank": 12, "score": 55.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.7, "buzz": 75.0, "idea_affinity": 100, "low_competition": 87.2, "agreement": 100.0, "supply_gap": 2.9}, "margin_pct": 0.4529, "units_per_month": 11, "found_by": ["search:travel cable organizer@kitchen"]}, {"ts": 1781102300.4214735, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0125195F2", "rank": 13, "score": 54.6, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 75.6, "agreement": 100.0, "supply_gap": 1.7}, "margin_pct": 0.3394, "units_per_month": 7, "found_by": ["search:mini compact spice rack@office_products"]}, {"ts": 1781102300.4215097, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0691E1545", "rank": 14, "score": 54.3, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 76.7, "agreement": 100.0, "supply_gap": 0.4}, "margin_pct": 0.2682, "units_per_month": 3, "found_by": ["search:large spice rack for kitchen@office_products"]}, {"ts": 1781102300.421524, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0F00902AF", "rank": 15, "score": 54.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 5.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 70.8, "agreement": 100.0, "supply_gap": 1.7}, "margin_pct": 0.4181, "units_per_month": 15, "found_by": ["search:compact spice rack@office_products"]}, {"ts": 1781102300.4215333, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B02EFC532A", "rank": 16, "score": 54.2, "lane": "whitespace", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.0, "buzz": 75.0, "idea_affinity": 100, "low_competition": 84.8, "agreement": 100.0, "supply_gap": 2.0}, "margin_pct": 0.4744, "units_per_month": 9, "found_by": ["search:mini travel cable organizer@kitchen"]}, {"ts": 1781102300.4215422, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B09837E44B", "rank": 17, "score": 53.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 44.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 25.3, "agreement": 100.0, "supply_gap": 5.9}, "margin_pct": 0.2128, "units_per_month": 132, "found_by": ["search:travel spice rack holder@kitchen"]}, {"ts": 1781102300.4215503, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0268DCB92", "rank": 18, "score": 53.6, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 69.7, "agreement": 100.0, "supply_gap": 1.8}, "margin_pct": 0.3128, "units_per_month": 10, "found_by": ["search:compact spice rack@kitchen"]}, {"ts": 1781102300.4215589, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E713D7A9", "rank": 19, "score": 53.3, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 78.0, "buzz": 75.0, "idea_affinity": 100, "low_competition": 2.0, "agreement": 100.0, "supply_gap": 5.2}, "margin_pct": 0.2746, "units_per_month": 234, "found_by": ["search:travel cable organizer organizer@office_products"]}, {"ts": 1781102300.421567, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B036EF98EE", "rank": 20, "score": 53.3, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 8.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 56.4, "agreement": 100.0, "supply_gap": 8.1}, "margin_pct": 0.4638, "units_per_month": 26, "found_by": ["search:spice rack@kitchen"]}, {"ts": 1781102300.421639, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B06ADE705A", "rank": 21, "score": 53.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.0, "buzz": 75.0, "idea_affinity": 100, "low_competition": 83.0, "agreement": 100.0, "supply_gap": 0.9}, "margin_pct": 0.2637, "units_per_month": 3, "found_by": ["search:travel cable organizer organizer@office_products"]}, {"ts": 1781102300.4216604, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B085DB3FB6", "rank": 22, "score": 53.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 69.7, "agreement": 100.0, "supply_gap": 0.6}, "margin_pct": 0.4055, "units_per_month": 4, "found_by": ["search:spice rack@office_products"]}, {"ts": 1781102300.4216728, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B018716DA3", "rank": 23, "score": 53.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 69.8, "agreement": 100.0, "supply_gap": 0.4}, "margin_pct": 0.3035, "units_per_month": 4, "found_by": ["search:spice rack@kitchen"]}, {"ts": 1781102300.4216816, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0BFAD1117", "rank": 24, "score": 52.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 66.9, "agreement": 100.0, "supply_gap": 1.1}, "margin_pct": 0.478, "units_per_month": 7, "found_by": ["search:spice rack organizer@kitchen"]}, {"ts": 1781102300.4216902, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0C6293282", "rank": 25, "score": 52.6, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 67.0, "agreement": 100.0, "supply_gap": 0.4}, "margin_pct": 0.4632, "units_per_month": 6, "found_by": ["search:mini travel spice rack@kitchen"]}, {"ts": 1781102300.4216986, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0F186C365", "rank": 26, "score": 52.4, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 13.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 53.9, "agreement": 100.0, "supply_gap": 1.7}, "margin_pct": 0.4701, "units_per_month": 39, "found_by": ["search:compact spice rack organizer@kitchen"]}, {"ts": 1781102300.4217072, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B06534B118", "rank": 27, "score": 52.3, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 15.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 48.2, "agreement": 100.0, "supply_gap": 5.0}, "margin_pct": 0.254, "units_per_month": 45, "found_by": ["search:travel spice rack holder@kitchen"]}, {"ts": 1781102300.4217155, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B024B6E027", "rank": 28, "score": 52.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 76.4, "agreement": 100.0, "supply_gap": 0.9}, "margin_pct": 0.3653, "units_per_month": 7, "found_by": ["search:travel cable organizer@office_products"]}, {"ts": 1781102300.4217243, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0584B3EB4", "rank": 29, "score": 52.1, "lane": "whitespace", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 66.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2649, "units_per_month": 3, "found_by": ["search:mini spice rack for kitchen@office_products"]}, {"ts": 1781102300.4217327, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B07FC69B96", "rank": 30, "score": 52.1, "lane": "whitespace", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 66.2, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3159, "units_per_month": 3, "found_by": ["search:travel spice rack@office_products"]}, {"ts": 1781102300.4217408, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D8017CA7", "rank": 31, "score": 52.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 65.2, "agreement": 100.0, "supply_gap": 0.3}, "margin_pct": 0.4537, "units_per_month": 4, "found_by": ["search:mini spice rack for kitchen@kitchen"]}, {"ts": 1781102300.4217486, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0F4413977", "rank": 32, "score": 52.0, "lane": "whitespace", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 65.2, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3801, "units_per_month": 4, "found_by": ["search:spice rack organizer@kitchen"]}, {"ts": 1781102300.421757, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B073110D93", "rank": 33, "score": 51.9, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 61.2, "agreement": 100.0, "supply_gap": 1.6}, "margin_pct": 0.2004, "units_per_month": 10, "found_by": ["search:compact spice rack organizer@office_products"]}, {"ts": 1781102300.4217653, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0259E80D2", "rank": 34, "score": 51.8, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 64.5, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3606, "units_per_month": 3, "found_by": ["search:mini spice rack@office_products"]}, {"ts": 1781102300.4217737, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B3295E18", "rank": 35, "score": 51.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 63.2, "agreement": 100.0, "supply_gap": 0.4}, "margin_pct": 0.4863, "units_per_month": 4, "found_by": ["search:spice rack@kitchen"]}, {"ts": 1781102300.4217825, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B01553CA1A", "rank": 36, "score": 51.6, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 11.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 53.1, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3372, "units_per_month": 34, "found_by": ["search:spice rack for kitchen@office_products"]}, {"ts": 1781102300.4217908, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B0E74559", "rank": 37, "score": 51.6, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 4.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 57.5, "agreement": 100.0, "supply_gap": 2.6}, "margin_pct": 0.4701, "units_per_month": 13, "found_by": ["search:large spice rack for kitchen@office_products"]}, {"ts": 1781102300.4217997, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B046C64F13", "rank": 38, "score": 51.6, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 62.9, "agreement": 100.0, "supply_gap": 0.2}, "margin_pct": 0.3885, "units_per_month": 5, "found_by": ["search:compact spice rack organizer@kitchen"]}, {"ts": 1781102300.4218311, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0C3BC0D27", "rank": 39, "score": 51.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 4.7, "buzz": 75.0, "idea_affinity": 100, "low_competition": 67.3, "agreement": 100.0, "supply_gap": 4.4}, "margin_pct": 0.4314, "units_per_month": 14, "found_by": ["search:mini travel cable organizer@office_products"]}, {"ts": 1781102300.4218447, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0DC59812A", "rank": 40, "score": 51.4, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 60.5, "agreement": 100.0, "supply_gap": 0.4}, "margin_pct": 0.3404, "units_per_month": 8, "found_by": ["search:compact spice rack@kitchen"]}, {"ts": 1781102300.421974, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0ABA18959", "rank": 41, "score": 51.4, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 62.6, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4488, "units_per_month": 3, "found_by": ["search:mini spice rack@office_products"]}, {"ts": 1781102300.4219902, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B08F1D0E02", "rank": 42, "score": 51.3, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 69.6, "agreement": 100.0, "supply_gap": 2.4}, "margin_pct": 0.4249, "units_per_month": 10, "found_by": ["search:mini travel cable organizer@kitchen"]}, {"ts": 1781102300.4220006, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D3362EA8", "rank": 43, "score": 51.3, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 60.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4215, "units_per_month": 8, "found_by": ["search:mini spice rack@kitchen"]}, {"ts": 1781102300.422009, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B014F505C6", "rank": 44, "score": 51.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 14.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 43.7, "agreement": 100.0, "supply_gap": 4.7}, "margin_pct": 0.4525, "units_per_month": 42, "found_by": ["search:mini spice rack for kitchen@office_products"]}, {"ts": 1781102300.4220178, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B00A929886", "rank": 45, "score": 51.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 61.4, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3832, "units_per_month": 3, "found_by": ["search:travel spice rack holder@office_products"]}, {"ts": 1781102300.4220257, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B084BC8947", "rank": 46, "score": 51.1, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 60.5, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4457, "units_per_month": 5, "found_by": ["search:travel spice rack holder@office_products"]}, {"ts": 1781102300.422034, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B061F648AC", "rank": 47, "score": 50.9, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 5.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 56.0, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4128, "units_per_month": 15, "found_by": ["search:large spice rack for kitchen@kitchen"]}, {"ts": 1781102300.4220421, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B08D6FD0F5", "rank": 48, "score": 50.9, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 59.6, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4355, "units_per_month": 4, "found_by": ["search:mini travel spice rack@kitchen"]}, {"ts": 1781102300.4220502, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0355B512B", "rank": 49, "score": 50.8, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 7.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 51.4, "agreement": 100.0, "supply_gap": 1.5}, "margin_pct": 0.3171, "units_per_month": 23, "found_by": ["search:spice rack for kitchen@office_products"]}, {"ts": 1781102300.4220588, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B031394C4A", "rank": 50, "score": 50.8, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 59.1, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3869, "units_per_month": 4, "found_by": ["search:mini spice rack for kitchen@office_products"]}, {"ts": 1781102300.4220672, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B07026E49E", "rank": 51, "score": 50.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 58.9, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2989, "units_per_month": 4, "found_by": ["search:travel spice rack holder@kitchen"]}, {"ts": 1781102300.422075, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B2C0F8C5", "rank": 52, "score": 50.6, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 58.5, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3581, "units_per_month": 3, "found_by": ["search:mini spice rack for kitchen@office_products"]}, {"ts": 1781102300.4220831, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B052210D8B", "rank": 53, "score": 50.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 55.8, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4528, "units_per_month": 10, "found_by": ["search:spice rack organizer@kitchen"]}, {"ts": 1781102300.4220912, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0ACEBAC56", "rank": 54, "score": 50.4, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 7.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 51.5, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.321, "units_per_month": 22, "found_by": ["search:mini compact spice rack@kitchen"]}, {"ts": 1781102300.4221046, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B09F85CD9E", "rank": 55, "score": 50.4, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 55.7, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4403, "units_per_month": 8, "found_by": ["search:spice rack organizer@kitchen"]}, {"ts": 1781102300.4221127, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D6E2DF3C", "rank": 56, "score": 50.4, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 57.2, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4336, "units_per_month": 4, "found_by": ["search:mini compact spice rack@kitchen"]}, {"ts": 1781102300.4221208, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0170A0B1A", "rank": 57, "score": 50.3, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 58.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 0.0, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4308, "units_per_month": 175, "found_by": ["search:travel spice rack@office_products"]}, {"ts": 1781102300.4221292, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B934172C", "rank": 58, "score": 50.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 4.0, "buzz": 70.2, "idea_affinity": 100, "low_competition": 83.3, "agreement": 66.7, "supply_gap": 2.9}, "margin_pct": 0.4545, "units_per_month": 12, "found_by": ["search:cable organizer for kitchen for small spaces@kitchen"]}, {"ts": 1781102300.4221375, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B02E18A40F", "rank": 59, "score": 50.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 54.2, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3092, "units_per_month": 10, "found_by": ["search:compact spice rack organizer@kitchen"]}, {"ts": 1781102300.4221458, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0975BD160", "rank": 60, "score": 50.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.7, "buzz": 75.0, "idea_affinity": 100, "low_competition": 68.0, "agreement": 100.0, "supply_gap": 0.2}, "margin_pct": 0.355, "units_per_month": 5, "found_by": ["search:travel cable organizer@kitchen"]}, {"ts": 1781102300.4222114, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0FD9EDDA6", "rank": 61, "score": 50.1, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 54.9, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3653, "units_per_month": 7, "found_by": ["search:large spice rack for kitchen@kitchen"]}, {"ts": 1781102300.4222267, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B01E117CEB", "rank": 62, "score": 50.1, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 55.1, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4365, "units_per_month": 6, "found_by": ["search:travel spice rack@kitchen"]}, {"ts": 1781102300.4222364, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B04B13CED1", "rank": 63, "score": 50.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 53.8, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4952, "units_per_month": 9, "found_by": ["search:mini travel spice rack@kitchen"]}, {"ts": 1781102300.422245, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B070810021", "rank": 64, "score": 49.8, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 53.1, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4171, "units_per_month": 8, "found_by": ["search:compact spice rack@kitchen"]}, {"ts": 1781102300.4222534, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0A459C67A", "rank": 65, "score": 49.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 10.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 44.9, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.456, "units_per_month": 30, "found_by": ["search:mini spice rack@kitchen"]}, {"ts": 1781102300.4222615, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B029CDF38F", "rank": 66, "score": 49.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 51.9, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3574, "units_per_month": 10, "found_by": ["search:compact spice rack organizer@office_products"]}, {"ts": 1781102300.42227, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B019F61754", "rank": 67, "score": 49.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 52.2, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3225, "units_per_month": 9, "found_by": ["search:spice rack organizer@office_products"]}, {"ts": 1781102300.422278, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E90A8A4F", "rank": 68, "score": 49.6, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 12.7, "buzz": 60.4, "idea_affinity": 100, "low_competition": 71.6, "agreement": 66.7, "supply_gap": 10.1}, "margin_pct": 0.4146, "units_per_month": 38, "found_by": ["search:compact cable organizer for small spaces@kitchen"]}, {"ts": 1781102300.4222865, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B059D02966", "rank": 69, "score": 49.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 52.0, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3683, "units_per_month": 6, "found_by": ["search:compact spice rack@office_products"]}, {"ts": 1781102300.4222949, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0FAD0D0C0", "rank": 70, "score": 49.3, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 49.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4154, "units_per_month": 11, "found_by": ["search:large spice rack for kitchen@kitchen"]}, {"ts": 1781102300.4223027, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0876CBA1C", "rank": 71, "score": 49.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 49.8, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2577, "units_per_month": 8, "found_by": ["search:spice rack@office_products"]}, {"ts": 1781102300.4223108, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0027A530A", "rank": 72, "score": 49.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 63.6, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4579, "units_per_month": 4, "found_by": ["search:mini travel cable organizer@office_products"]}, {"ts": 1781102300.4223187, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B02F709A10", "rank": 73, "score": 49.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 9.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 42.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2823, "units_per_month": 28, "found_by": ["search:mini spice rack for kitchen@office_products"]}, {"ts": 1781102300.4223266, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B024CA6F60", "rank": 74, "score": 49.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 7.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 78.2, "agreement": 66.7, "supply_gap": 6.1}, "margin_pct": 0.4222, "units_per_month": 21, "found_by": ["search:mini compact cable organizer@kitchen"]}, {"ts": 1781102300.422335, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D6C015B8", "rank": 75, "score": 49.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 82.0, "agreement": 66.7, "supply_gap": 0.8}, "margin_pct": 0.3771, "units_per_month": 4, "found_by": ["search:cable organizer for kitchen set@office_products"]}, {"ts": 1781102300.4223433, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0275DB0FE", "rank": 76, "score": 48.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 7.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 48.9, "agreement": 100.0, "supply_gap": 5.9}, "margin_pct": 0.3145, "units_per_month": 22, "found_by": ["search:mini travel cable organizer@office_products"]}, {"ts": 1781102300.4223511, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B08917D04F", "rank": 77, "score": 48.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 61.0, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4466, "units_per_month": 4, "found_by": ["search:travel cable organizer@kitchen"]}, {"ts": 1781102300.422359, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B08FB8BB0A", "rank": 78, "score": 48.6, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 22.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 16.0, "agreement": 100.0, "supply_gap": 11.7}, "margin_pct": 0.2934, "units_per_month": 66, "found_by": ["search:spice rack for kitchen@kitchen"]}, {"ts": 1781102300.4223676, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0BEE47536", "rank": 79, "score": 48.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 75.9, "agreement": 66.7, "supply_gap": 1.6}, "margin_pct": 0.2152, "units_per_month": 7, "found_by": ["search:cable organizer for kitchen set@kitchen"]}, {"ts": 1781102300.4223757, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0BB2CE48E", "rank": 80, "score": 48.1, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 19.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 24.1, "agreement": 100.0, "supply_gap": 3.8}, "margin_pct": 0.2459, "units_per_month": 57, "found_by": ["search:mini spice rack@kitchen"]}, {"ts": 1781102300.422435, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B02A7BF9F8", "rank": 81, "score": 47.9, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 58.0, "buzz": 75.0, "idea_affinity": 100, "low_competition": 0.0, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2522, "units_per_month": 174, "found_by": ["search:mini travel cable organizer@kitchen"]}, {"ts": 1781102300.4224496, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B09715EE0F", "rank": 82, "score": 47.8, "lane": "whitespace", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 76.3, "agreement": 66.7, "supply_gap": 0.4}, "margin_pct": 0.387, "units_per_month": 4, "found_by": ["search:cable organizer for kitchen for small spaces@office_products"]}, {"ts": 1781102300.422459, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B07F798268", "rank": 83, "score": 47.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 17.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 22.2, "agreement": 100.0, "supply_gap": 5.8}, "margin_pct": 0.3551, "units_per_month": 52, "found_by": ["search:spice rack@kitchen"]}, {"ts": 1781102300.4224672, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0ECA1EA9F", "rank": 84, "score": 47.4, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.7, "buzz": 75.0, "idea_affinity": 100, "low_competition": 52.2, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.389, "units_per_month": 11, "found_by": ["search:travel cable organizer organizer@office_products"]}, {"ts": 1781102300.4224756, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B07EF390FC", "rank": 85, "score": 47.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 13.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 21.8, "agreement": 100.0, "supply_gap": 7.8}, "margin_pct": 0.4168, "units_per_month": 39, "found_by": ["search:mini travel spice rack@office_products"]}, {"ts": 1781102300.4224837, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0A6D9092A", "rank": 86, "score": 46.3, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.7, "buzz": 75.0, "idea_affinity": 100, "low_competition": 46.5, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4365, "units_per_month": 11, "found_by": ["search:mini travel cable organizer@kitchen"]}, {"ts": 1781102300.4224916, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E1BEED41", "rank": 87, "score": 46.3, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 74.6, "agreement": 66.7, "supply_gap": 1.1}, "margin_pct": 0.4194, "units_per_month": 7, "found_by": ["search:mini compact cable organizer@kitchen"]}, {"ts": 1781102300.4225, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E6E4272B", "rank": 88, "score": 46.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 7.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 55.1, "agreement": 66.7, "supply_gap": 6.4}, "margin_pct": 0.4782, "units_per_month": 22, "found_by": ["search:cable organizer for kitchen for small spaces@office_products"]}, {"ts": 1781102300.4225085, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B3057EAF", "rank": 89, "score": 45.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.7, "buzz": 70.2, "idea_affinity": 100, "low_competition": 63.8, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.3496, "units_per_month": 11, "found_by": ["search:cable organizer for kitchen for small spaces@kitchen"]}, {"ts": 1781102300.4225168, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E1F45AEB", "rank": 90, "score": 45.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 22.3, "buzz": 53.8, "idea_affinity": 100, "low_competition": 64.4, "agreement": 33.3, "supply_gap": 8.9}, "margin_pct": 0.4068, "units_per_month": 67, "found_by": ["search:cable organizer@kitchen"]}, {"ts": 1781102300.4225252, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B043FD20FB", "rank": 91, "score": 45.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 13.7, "buzz": 53.8, "idea_affinity": 100, "low_competition": 71.8, "agreement": 33.3, "supply_gap": 10.0}, "margin_pct": 0.4048, "units_per_month": 41, "found_by": ["search:cable organizer set@office_products"]}, {"ts": 1781102300.4225333, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B072CC06A1", "rank": 92, "score": 45.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 69.2, "agreement": 66.7, "supply_gap": 1.4}, "margin_pct": 0.3404, "units_per_month": 9, "found_by": ["search:mini compact cable organizer@office_products"]}, {"ts": 1781102300.4225416, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B02E338B5B", "rank": 93, "score": 45.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.0, "buzz": 75.0, "idea_affinity": 100, "low_competition": 43.0, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3498, "units_per_month": 9, "found_by": ["search:travel cable organizer organizer@office_products"]}, {"ts": 1781102300.4225495, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0ABB60CCD", "rank": 94, "score": 45.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 64.1, "agreement": 66.7, "supply_gap": 0.2}, "margin_pct": 0.4112, "units_per_month": 7, "found_by": ["search:cable organizer for kitchen set@kitchen"]}, {"ts": 1781102300.4225576, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B03C5901C4", "rank": 95, "score": 45.3, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.7, "buzz": 70.2, "idea_affinity": 100, "low_competition": 62.8, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.3692, "units_per_month": 8, "found_by": ["search:cable organizer for kitchen for small spaces@office_products"]}, {"ts": 1781102300.4225657, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0320ED144", "rank": 96, "score": 44.9, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 60.1, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.3749, "units_per_month": 10, "found_by": ["search:cable organizer for kitchen set@kitchen"]}, {"ts": 1781102300.4225738, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0C360846C", "rank": 97, "score": 44.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 6.0, "buzz": 70.2, "idea_affinity": 100, "low_competition": 54.3, "agreement": 66.7, "supply_gap": 2.4}, "margin_pct": 0.4695, "units_per_month": 18, "found_by": ["search:cable organizer for kitchen set@kitchen"]}, {"ts": 1781102300.4225826, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B07FA64171", "rank": 98, "score": 44.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 5.7, "buzz": 53.8, "idea_affinity": 100, "low_competition": 81.8, "agreement": 33.3, "supply_gap": 3.8}, "margin_pct": 0.475, "units_per_month": 17, "found_by": ["search:cable organizer set@kitchen"]}, {"ts": 1781102300.4225912, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0412A76CA", "rank": 99, "score": 44.6, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 10.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 45.7, "agreement": 66.7, "supply_gap": 6.2}, "margin_pct": 0.4227, "units_per_month": 31, "found_by": ["search:cable organizer for kitchen@kitchen"]}, {"ts": 1781102300.4225998, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0977B70E6", "rank": 100, "score": 44.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.0, "buzz": 70.2, "idea_affinity": 100, "low_competition": 58.6, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.2564, "units_per_month": 9, "found_by": ["search:cable organizer for kitchen@office_products"]}, {"ts": 1781102300.4226608, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E5A7B89E", "rank": 101, "score": 44.3, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 59.1, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.4403, "units_per_month": 4, "found_by": ["search:cable organizer for kitchen set@office_products"]}, {"ts": 1781102300.4226763, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0520F1AAD", "rank": 102, "score": 44.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 64.3, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.3444, "units_per_month": 9, "found_by": ["search:compact cable organizer for small spaces@kitchen"]}, {"ts": 1781102300.4226866, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0FD8D9E74", "rank": 103, "score": 44.2, "lane": "whitespace", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 66.1, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.3873, "units_per_month": 4, "found_by": ["search:compact cable organizer@office_products"]}, {"ts": 1781102300.422695, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0352E21A2", "rank": 104, "score": 44.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 65.9, "agreement": 66.7, "supply_gap": 0.4}, "margin_pct": 0.2983, "units_per_month": 4, "found_by": ["search:compact cable organizer@office_products"]}, {"ts": 1781102300.422703, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D8BFCC02", "rank": 105, "score": 44.1, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 58.3, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.42, "units_per_month": 4, "found_by": ["search:cable organizer for kitchen@kitchen"]}, {"ts": 1781102300.4227114, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B014F603BE", "rank": 106, "score": 43.9, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 14.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 11.6, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.429, "units_per_month": 43, "found_by": ["search:travel spice rack holder@office_products"]}, {"ts": 1781102300.4227195, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B01A8DA757", "rank": 107, "score": 43.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 25.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 0.0, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.33, "units_per_month": 76, "found_by": ["search:large spice rack for kitchen@office_products"]}, {"ts": 1781102300.4227276, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B01F98322B", "rank": 108, "score": 43.6, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.7, "buzz": 60.4, "idea_affinity": 100, "low_competition": 62.7, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.4345, "units_per_month": 5, "found_by": ["search:compact cable organizer for small spaces@office_products"]}, {"ts": 1781102300.422736, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B098144D14", "rank": 109, "score": 43.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 14.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 6.3, "agreement": 100.0, "supply_gap": 2.9}, "margin_pct": 0.4237, "units_per_month": 44, "found_by": ["search:mini spice rack@office_products"]}, {"ts": 1781102300.4227443, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0AFF13C6D", "rank": 110, "score": 43.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 4.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 59.3, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.4621, "units_per_month": 13, "found_by": ["search:compact cable organizer@office_products"]}, {"ts": 1781102300.4227521, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B053B2ACC1", "rank": 111, "score": 43.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 19.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 3.7, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.4387, "units_per_month": 57, "found_by": ["search:mini spice rack@kitchen"]}, {"ts": 1781102300.4227602, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0721643D9", "rank": 112, "score": 42.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 58.7, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.4281, "units_per_month": 3, "found_by": ["search:compact cable organizer@office_products"]}, {"ts": 1781102300.4227684, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0C0FF840A", "rank": 113, "score": 42.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.3, "buzz": 53.8, "idea_affinity": 100, "low_competition": 76.2, "agreement": 33.3, "supply_gap": 1.9}, "margin_pct": 0.3741, "units_per_month": 7, "found_by": ["search:cable organizer for small spaces@kitchen"]}, {"ts": 1781102300.4227762, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0CAA11672", "rank": 114, "score": 42.4, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 55.0, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.3849, "units_per_month": 10, "found_by": ["search:compact cable organizer for small spaces@office_products"]}, {"ts": 1781102300.4227848, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0AEAB73C2", "rank": 115, "score": 40.9, "lane": "safe", "origin": "bestseller", "marks": [], "sub_scores": {"velocity": 100.0, "buzz": 0.0, "idea_affinity": 35, "low_competition": 18.0, "agreement": 0.0, "supply_gap": 60.0}, "margin_pct": 0.4626, "units_per_month": 1365, "found_by": ["best_sellers:kitchen"]}, {"ts": 1781102300.4227934, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0F3450BD1", "rank": 116, "score": 40.2, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 38.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 4.1, "agreement": 66.7, "supply_gap": 5.1}, "margin_pct": 0.302, "units_per_month": 115, "found_by": ["search:compact cable organizer for small spaces@kitchen"]}, {"ts": 1781102300.4228017, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0389B162A", "rank": 117, "score": 39.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 4.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 37.2, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.2337, "units_per_month": 12, "found_by": ["search:mini compact cable organizer@office_products"]}, {"ts": 1781102300.422839, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0F511C67C", "rank": 118, "score": 38.5, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 23.7, "buzz": 53.8, "idea_affinity": 100, "low_competition": 37.0, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": 0.4511, "units_per_month": 71, "found_by": ["search:cable organizer@office_products"]}, {"ts": 1781102300.422851, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0EDDDA0EC", "rank": 119, "score": 37.6, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 3.3, "buzz": 53.8, "idea_affinity": 100, "low_competition": 52.5, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": 0.3206, "units_per_month": 10, "found_by": ["search:cable organizer@office_products"]}, {"ts": 1781102300.4228594, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E10B1BD5", "rank": 120, "score": 37.3, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 11.7, "buzz": 53.8, "idea_affinity": 100, "low_competition": 37.6, "agreement": 33.3, "supply_gap": 5.4}, "margin_pct": 0.3284, "units_per_month": 35, "found_by": ["search:cable organizer set@office_products"]}, {"ts": 1781102300.4229236, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D12A59E1", "rank": 121, "score": 37.1, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 7.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 46.3, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": 0.2693, "units_per_month": 21, "found_by": ["search:cable organizer set@kitchen"]}, {"ts": 1781102300.4229383, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0DDFC50F6", "rank": 122, "score": 36.7, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 16.7, "buzz": 70.2, "idea_affinity": 100, "low_competition": 5.8, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.3908, "units_per_month": 50, "found_by": ["search:cable organizer for kitchen@kitchen"]}, {"ts": 1781102300.4229474, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B09215C384", "rank": 123, "score": 35.8, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 28.3, "buzz": 53.8, "idea_affinity": 100, "low_competition": 18.7, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": 0.3162, "units_per_month": 85, "found_by": ["search:cable organizer for small spaces@office_products"]}, {"ts": 1781102300.4229555, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B03F14295B", "rank": 124, "score": 35.0, "lane": "safe", "origin": "bestseller", "marks": ["oversize"], "sub_scores": {"velocity": 100.0, "buzz": 0.0, "idea_affinity": 35, "low_competition": 12.0, "agreement": 0.0, "supply_gap": 40.0}, "margin_pct": 0.2374, "units_per_month": 1237, "found_by": ["best_sellers:office_products"]}, {"ts": 1781102300.4229648, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B08A0CA358", "rank": 125, "score": 35.0, "lane": "safe", "origin": "bestseller", "marks": ["oversize"], "sub_scores": {"velocity": 100.0, "buzz": 0.0, "idea_affinity": 35, "low_competition": 24.0, "agreement": 0.0, "supply_gap": 80.0}, "margin_pct": 0.0615, "units_per_month": 359, "found_by": ["best_sellers:office_products"]}, {"ts": 1781102300.4229732, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B05DA2C77E", "rank": 126, "score": 35.0, "lane": "safe", "origin": "bestseller", "marks": ["oversize"], "sub_scores": {"velocity": 100.0, "buzz": 0.0, "idea_affinity": 35, "low_competition": 16.0, "agreement": 0.0, "supply_gap": 53.3}, "margin_pct": 0.2088, "units_per_month": 530, "found_by": ["best_sellers:kitchen"]}, {"ts": 1781102300.4229813, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0F151C72E", "rank": 127, "score": 35.0, "lane": "safe", "origin": "bestseller", "marks": ["oversize"], "sub_scores": {"velocity": 100.0, "buzz": 0.0, "idea_affinity": 35, "low_competition": 26.0, "agreement": 0.0, "supply_gap": 86.7}, "margin_pct": 0.383, "units_per_month": 495, "found_by": ["best_sellers:kitchen"]}, {"ts": 1781102300.4229894, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0ED93A3EA", "rank": 128, "score": 35.0, "lane": "safe", "origin": "bestseller", "marks": ["oversize"], "sub_scores": {"velocity": 96.7, "buzz": 0.0, "idea_affinity": 35, "low_competition": 14.0, "agreement": 0.0, "supply_gap": 45.1}, "margin_pct": -0.1642, "units_per_month": 290, "found_by": ["best_sellers:office_products"]}, {"ts": 1781102300.4229975, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0051C9055", "rank": 129, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 76.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 0.0, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3102, "units_per_month": 230, "found_by": ["search:travel spice rack holder@office_products"]}, {"ts": 1781102300.423006, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B026B34A21", "rank": 130, "score": 35.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 65.0, "buzz": 75.0, "idea_affinity": 100, "low_competition": 0.0, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.1232, "units_per_month": 195, "found_by": ["search:travel cable organizer organizer@office_products"]}, {"ts": 1781102300.4230142, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B01763CB96", "rank": 131, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 60.3, "buzz": 53.8, "idea_affinity": 100, "low_competition": 10.0, "agreement": 33.3, "supply_gap": 20.1}, "margin_pct": 0.13, "units_per_month": 181, "found_by": ["search:cable organizer for small spaces@office_products"]}, {"ts": 1781102300.4230227, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0EFE34BDA", "rank": 132, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 59.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 12.0, "agreement": 100.0, "supply_gap": 23.9}, "margin_pct": -0.2726, "units_per_month": 179, "found_by": ["search:compact spice rack@office_products"]}, {"ts": 1781102300.4230313, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B02869AFC2", "rank": 133, "score": 35.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 54.7, "buzz": 60.4, "idea_affinity": 100, "low_competition": 0.0, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.0516, "units_per_month": 164, "found_by": ["search:mini compact cable organizer@office_products"]}, {"ts": 1781102300.4230392, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0A87E3CD5", "rank": 134, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 62.0, "buzz": 70.2, "idea_affinity": 100, "low_competition": 0.0, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.2412, "units_per_month": 186, "found_by": ["search:cable organizer for kitchen@kitchen"]}, {"ts": 1781102300.4230475, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B025016AF3", "rank": 135, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 37.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 16.9, "agreement": 100.0, "supply_gap": 17.4}, "margin_pct": 0.3091, "units_per_month": 112, "found_by": ["search:mini travel spice rack@office_products"]}, {"ts": 1781102300.4230561, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0C037712C", "rank": 136, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 43.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 43.8, "agreement": 100.0, "supply_gap": 23.1}, "margin_pct": 0.1636, "units_per_month": 130, "found_by": ["search:mini compact spice rack@kitchen"]}, {"ts": 1781102300.423064, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D670552A", "rank": 137, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 21.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 12.0, "agreement": 100.0, "supply_gap": 8.7}, "margin_pct": -0.204, "units_per_month": 65, "found_by": ["search:compact spice rack organizer@office_products"]}, {"ts": 1781102300.4230726, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D1ED811C", "rank": 138, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 18.7, "buzz": 70.2, "idea_affinity": 100, "low_competition": 44.0, "agreement": 66.7, "supply_gap": 8.7}, "margin_pct": 0.0905, "units_per_month": 56, "found_by": ["search:cable organizer for kitchen set@office_products"]}, {"ts": 1781102300.4231126, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B019175BFE", "rank": 139, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 18.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 5.2, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2436, "units_per_month": 55, "found_by": ["search:travel spice rack holder@office_products"]}, {"ts": 1781102300.4231274, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B04E44D3BC", "rank": 140, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 18.0, "buzz": 70.2, "idea_affinity": 100, "low_competition": 22.8, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.2824, "units_per_month": 54, "found_by": ["search:cable organizer for kitchen set@office_products"]}, {"ts": 1781102300.423191, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E94EC432", "rank": 141, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 17.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 46.7, "agreement": 100.0, "supply_gap": 5.8}, "margin_pct": 0.2818, "units_per_month": 52, "found_by": ["search:mini compact spice rack@office_products"]}, {"ts": 1781102300.4232063, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0ED2B597C", "rank": 142, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 25.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 42.5, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2548, "units_per_month": 76, "found_by": ["search:mini travel spice rack@kitchen"]}, {"ts": 1781102300.4232156, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B05760A5F2", "rank": 143, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 22.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 22.8, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2735, "units_per_month": 66, "found_by": ["search:travel spice rack@kitchen"]}, {"ts": 1781102300.423224, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B004246A88", "rank": 144, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 21.3, "buzz": 53.8, "idea_affinity": 100, "low_competition": 29.5, "agreement": 33.3, "supply_gap": 18.5}, "margin_pct": 0.3766, "units_per_month": 64, "found_by": ["search:cable organizer set@kitchen"]}, {"ts": 1781102300.4232326, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D678AA3E", "rank": 145, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 20.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 27.9, "agreement": 100.0, "supply_gap": 6.9}, "margin_pct": 0.2844, "units_per_month": 62, "found_by": ["search:mini compact spice rack@kitchen"]}, {"ts": 1781102300.423241, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B05E57AA71", "rank": 146, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 14.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 31.5, "agreement": 100.0, "supply_gap": 0.9}, "margin_pct": 0.2452, "units_per_month": 42, "found_by": ["search:spice rack@office_products"]}, {"ts": 1781102300.4232495, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D2066C8E", "rank": 147, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 19.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 31.6, "agreement": 100.0, "supply_gap": 7.9}, "margin_pct": 0.2837, "units_per_month": 59, "found_by": ["search:travel spice rack@kitchen"]}, {"ts": 1781102300.4232576, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0BB0BE66D", "rank": 148, "score": 35.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 14.0, "buzz": 70.2, "idea_affinity": 100, "low_competition": 12.6, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.1297, "units_per_month": 42, "found_by": ["search:cable organizer for kitchen for small spaces@office_products"]}, {"ts": 1781102300.4232657, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B3C58502", "rank": 149, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 18.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 32.1, "agreement": 100.0, "supply_gap": 2.5}, "margin_pct": 0.3763, "units_per_month": 56, "found_by": ["search:spice rack for kitchen@kitchen"]}, {"ts": 1781102300.4232743, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B06DFBCDC4", "rank": 150, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 13.0, "buzz": 75.0, "idea_affinity": 100, "low_competition": 34.5, "agreement": 100.0, "supply_gap": 5.2}, "margin_pct": 0.0248, "units_per_month": 39, "found_by": ["search:travel cable organizer@office_products"]}, {"ts": 1781102300.4232821, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B03A5458D9", "rank": 151, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 18.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 2.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.0619, "units_per_month": 55, "found_by": ["search:spice rack for kitchen@kitchen"]}, {"ts": 1781102300.42329, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0929349BC", "rank": 152, "score": 35.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 12.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 47.5, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.0835, "units_per_month": 38, "found_by": ["search:spice rack organizer@office_products"]}, {"ts": 1781102300.4232984, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B020B489C6", "rank": 153, "score": 35.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 12.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 17.4, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.1449, "units_per_month": 37, "found_by": ["search:cable organizer for kitchen@office_products"]}, {"ts": 1781102300.4233062, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B058BCAF6E", "rank": 154, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 17.7, "buzz": 70.2, "idea_affinity": 100, "low_competition": 71.1, "agreement": 66.7, "supply_gap": 15.3}, "margin_pct": 0.241, "units_per_month": 53, "found_by": ["search:cable organizer for kitchen for small spaces@kitchen"]}, {"ts": 1781102300.4233146, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E893295D", "rank": 155, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 17.7, "buzz": 60.4, "idea_affinity": 100, "low_competition": 66.7, "agreement": 66.7, "supply_gap": 16.5}, "margin_pct": 0.161, "units_per_month": 53, "found_by": ["search:mini compact cable organizer@kitchen"]}, {"ts": 1781102300.423323, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D0DB7185", "rank": 156, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 17.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 44.7, "agreement": 66.7, "supply_gap": 12.7}, "margin_pct": -0.1773, "units_per_month": 52, "found_by": ["search:cable organizer for kitchen set@kitchen"]}, {"ts": 1781102300.4233315, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B091E1AA5A", "rank": 157, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 16.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 49.2, "agreement": 33.3, "supply_gap": 2.1}, "margin_pct": 0.3659, "units_per_month": 48, "found_by": ["search:cable organizer@kitchen"]}, {"ts": 1781102300.4233396, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B07DFC85DE", "rank": 158, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 11.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 33.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": -0.1163, "units_per_month": 34, "found_by": ["search:spice rack@office_products"]}, {"ts": 1781102300.4233475, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B082D63B19", "rank": 159, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 11.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 36.2, "agreement": 100.0, "supply_gap": 10.3}, "margin_pct": 0.0783, "units_per_month": 33, "found_by": ["search:mini spice rack for kitchen@office_products"]}, {"ts": 1781102300.4233556, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0128538A9", "rank": 160, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 15.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 54.4, "agreement": 100.0, "supply_gap": 6.0}, "margin_pct": 0.1877, "units_per_month": 45, "found_by": ["search:travel spice rack@kitchen"]}, {"ts": 1781102300.4234176, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B053C593", "rank": 161, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 9.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 30.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.087, "units_per_month": 29, "found_by": ["search:mini spice rack@office_products"]}, {"ts": 1781102300.4234324, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B07E3EDCD4", "rank": 162, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 9.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 43.4, "agreement": 100.0, "supply_gap": 3.6}, "margin_pct": 0.2866, "units_per_month": 27, "found_by": ["search:large spice rack for kitchen@office_products"]}, {"ts": 1781102300.4234416, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B074C8EB91", "rank": 163, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 11.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 22.4, "agreement": 100.0, "supply_gap": 0.8}, "margin_pct": 0.0869, "units_per_month": 35, "found_by": ["search:large spice rack for kitchen@kitchen"]}, {"ts": 1781102300.42345, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B01C2E3DFD", "rank": 164, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 8.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 44.7, "agreement": 100.0, "supply_gap": 1.1}, "margin_pct": -0.1602, "units_per_month": 24, "found_by": ["search:spice rack@office_products"]}, {"ts": 1781102300.4234583, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0495EEBC0", "rank": 165, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 7.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 37.0, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": -0.1325, "units_per_month": 23, "found_by": ["search:spice rack organizer@office_products"]}, {"ts": 1781102300.4234664, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D39477A5", "rank": 166, "score": 35.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 10.7, "buzz": 60.4, "idea_affinity": 100, "low_competition": 33.0, "agreement": 66.7, "supply_gap": 0.7}, "margin_pct": 0.1557, "units_per_month": 32, "found_by": ["search:compact cable organizer@kitchen"]}, {"ts": 1781102300.4234748, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E08E1989", "rank": 167, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 7.3, "buzz": 53.8, "idea_affinity": 100, "low_competition": 35.0, "agreement": 33.3, "supply_gap": 2.0}, "margin_pct": 0.1776, "units_per_month": 22, "found_by": ["search:cable organizer for small spaces@office_products"]}, {"ts": 1781102300.423483, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B098132283", "rank": 168, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 7.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 22.8, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2066, "units_per_month": 22, "found_by": ["search:mini travel cable organizer@office_products"]}, {"ts": 1781102300.4234908, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B081648181", "rank": 169, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 10.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 53.7, "agreement": 100.0, "supply_gap": 4.1}, "margin_pct": 0.3622, "units_per_month": 31, "found_by": ["search:mini travel cable organizer@kitchen"]}, {"ts": 1781102300.4234993, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B05C59A4C1", "rank": 170, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 7.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 54.2, "agreement": 33.3, "supply_gap": 3.3}, "margin_pct": 0.2121, "units_per_month": 21, "found_by": ["search:cable organizer for small spaces@office_products"]}, {"ts": 1781102300.4235077, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0A36802F7", "rank": 171, "score": 35.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 9.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 44.5, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.1868, "units_per_month": 29, "found_by": ["search:mini spice rack for kitchen@kitchen"]}, {"ts": 1781102300.4235156, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B01022B2B8", "rank": 172, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 6.7, "buzz": 75.0, "idea_affinity": 100, "low_competition": 68.5, "agreement": 100.0, "supply_gap": 5.8}, "margin_pct": -0.1515, "units_per_month": 20, "found_by": ["search:travel cable organizer@office_products"]}, {"ts": 1781102300.423524, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0BC1D7A61", "rank": 173, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 9.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 68.3, "agreement": 66.7, "supply_gap": 6.2}, "margin_pct": 0.044, "units_per_month": 28, "found_by": ["search:cable organizer for kitchen@kitchen"]}, {"ts": 1781102300.4235318, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0773420F9", "rank": 174, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 6.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 56.5, "agreement": 100.0, "supply_gap": 4.6}, "margin_pct": 0.2175, "units_per_month": 19, "found_by": ["search:mini travel cable organizer@office_products"]}, {"ts": 1781102300.42354, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B06C9D6839", "rank": 175, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 8.7, "buzz": 53.8, "idea_affinity": 100, "low_competition": 44.6, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": 0.342, "units_per_month": 26, "found_by": ["search:cable organizer for small spaces@kitchen"]}, {"ts": 1781102300.4235485, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B44339F7", "rank": 176, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 8.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 41.1, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2461, "units_per_month": 25, "found_by": ["search:travel spice rack holder@kitchen"]}, {"ts": 1781102300.423556, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B03D3F7ECB", "rank": 177, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 8.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 28.7, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.325, "units_per_month": 25, "found_by": ["search:spice rack organizer@kitchen"]}, {"ts": 1781102300.423564, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B01A9E86F0", "rank": 178, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 6.0, "buzz": 75.0, "idea_affinity": 100, "low_competition": 37.1, "agreement": 100.0, "supply_gap": 1.2}, "margin_pct": 0.1382, "units_per_month": 18, "found_by": ["search:travel cable organizer@office_products"]}, {"ts": 1781102300.423572, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B537063B", "rank": 179, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 8.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 29.6, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3205, "units_per_month": 24, "found_by": ["search:mini travel spice rack@kitchen"]}, {"ts": 1781102300.42358, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D6C61AF0", "rank": 180, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 8.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 49.5, "agreement": 66.7, "supply_gap": 5.3}, "margin_pct": 0.3401, "units_per_month": 24, "found_by": ["search:mini compact cable organizer@kitchen"]}, {"ts": 1781102300.4236424, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0A7157D52", "rank": 181, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 5.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 40.2, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.0585, "units_per_month": 17, "found_by": ["search:compact spice rack organizer@office_products"]}, {"ts": 1781102300.4236572, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B178F1AA", "rank": 182, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 8.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 54.4, "agreement": 100.0, "supply_gap": 5.9}, "margin_pct": 0.3493, "units_per_month": 24, "found_by": ["search:travel spice rack@kitchen"]}, {"ts": 1781102300.423666, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0CD9C419A", "rank": 183, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 7.7, "buzz": 75.0, "idea_affinity": 100, "low_competition": 54.3, "agreement": 100.0, "supply_gap": 0.5}, "margin_pct": 0.1135, "units_per_month": 23, "found_by": ["search:travel cable organizer organizer@kitchen"]}, {"ts": 1781102300.423674, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0DAFA1DA4", "rank": 184, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 5.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 77.3, "agreement": 100.0, "supply_gap": 4.6}, "margin_pct": 0.3188, "units_per_month": 16, "found_by": ["search:travel spice rack@office_products"]}, {"ts": 1781102300.4236822, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B097C1AEBD", "rank": 185, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 7.7, "buzz": 75.0, "idea_affinity": 100, "low_competition": 45.9, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.0451, "units_per_month": 23, "found_by": ["search:travel cable organizer organizer@kitchen"]}, {"ts": 1781102300.4236903, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B09D3F0A2E", "rank": 186, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 5.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 53.3, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": -0.2291, "units_per_month": 16, "found_by": ["search:compact cable organizer@office_products"]}, {"ts": 1781102300.4236987, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D2CED7BA", "rank": 187, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 7.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 55.5, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": 0.185, "units_per_month": 21, "found_by": ["search:cable organizer for small spaces@kitchen"]}, {"ts": 1781102300.4237068, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B08705DD60", "rank": 188, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 5.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 56.4, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": 0.1952, "units_per_month": 15, "found_by": ["search:cable organizer@office_products"]}, {"ts": 1781102300.4237149, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B026540C48", "rank": 189, "score": 35.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 6.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 50.1, "agreement": 100.0, "supply_gap": 1.3}, "margin_pct": 0.1544, "units_per_month": 19, "found_by": ["search:spice rack for kitchen@kitchen"]}, {"ts": 1781102300.4237232, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E4A53155", "rank": 190, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 6.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 37.8, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3115, "units_per_month": 19, "found_by": ["search:large spice rack for kitchen@kitchen"]}, {"ts": 1781102300.423731, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B04DD3E684", "rank": 191, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 6.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 50.2, "agreement": 100.0, "supply_gap": 2.5}, "margin_pct": 0.2594, "units_per_month": 19, "found_by": ["search:compact spice rack@kitchen"]}, {"ts": 1781102300.4237392, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E838486D", "rank": 192, "score": 35.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 4.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 49.4, "agreement": 100.0, "supply_gap": 1.4}, "margin_pct": 0.1854, "units_per_month": 13, "found_by": ["search:large spice rack for kitchen@office_products"]}, {"ts": 1781102300.423747, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B055247E1A", "rank": 193, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 4.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 63.8, "agreement": 100.0, "supply_gap": 2.6}, "margin_pct": 0.319, "units_per_month": 13, "found_by": ["search:large spice rack for kitchen@office_products"]}, {"ts": 1781102300.423755, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0C04C919D", "rank": 194, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 4.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 41.5, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2602, "units_per_month": 12, "found_by": ["search:spice rack@office_products"]}, {"ts": 1781102300.423763, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0ABD55EDF", "rank": 195, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 4.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 52.8, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": -0.056, "units_per_month": 12, "found_by": ["search:spice rack organizer@office_products"]}, {"ts": 1781102300.4237707, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E846F5F5", "rank": 196, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 5.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 50.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2639, "units_per_month": 16, "found_by": ["search:travel spice rack@kitchen"]}, {"ts": 1781102300.4237788, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B03C044C6B", "rank": 197, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 5.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 79.4, "agreement": 100.0, "supply_gap": 5.0}, "margin_pct": 0.0085, "units_per_month": 16, "found_by": ["search:mini spice rack@kitchen"]}, {"ts": 1781102300.4237864, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B010B272EE", "rank": 198, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.7, "buzz": 70.2, "idea_affinity": 100, "low_competition": 54.0, "agreement": 66.7, "supply_gap": 1.5}, "margin_pct": 0.2408, "units_per_month": 11, "found_by": ["search:cable organizer for kitchen@office_products"]}, {"ts": 1781102300.4237978, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0A9E904BF", "rank": 199, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 5.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 73.3, "agreement": 33.3, "supply_gap": 4.0}, "margin_pct": -0.0012, "units_per_month": 15, "found_by": ["search:cable organizer@kitchen"]}, {"ts": 1781102300.423841, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B07FA58BC4", "rank": 200, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 61.9, "agreement": 100.0, "supply_gap": 1.6}, "margin_pct": 0.0299, "units_per_month": 10, "found_by": ["search:mini compact spice rack@office_products"]}, {"ts": 1781102300.4239388, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B09A07A6B7", "rank": 201, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 4.7, "buzz": 70.2, "idea_affinity": 100, "low_competition": 85.1, "agreement": 66.7, "supply_gap": 3.7}, "margin_pct": 0.1905, "units_per_month": 14, "found_by": ["search:cable organizer for kitchen for small spaces@kitchen"]}, {"ts": 1781102300.4239578, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B080D1BACB", "rank": 202, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 80.3, "agreement": 100.0, "supply_gap": 2.2}, "margin_pct": 0.1914, "units_per_month": 10, "found_by": ["search:compact spice rack@office_products"]}, {"ts": 1781102300.423968, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0C39A7688", "rank": 203, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 62.9, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": -0.0332, "units_per_month": 10, "found_by": ["search:compact cable organizer@office_products"]}, {"ts": 1781102300.4239767, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B015CDC461", "rank": 204, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 46.1, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2521, "units_per_month": 10, "found_by": ["search:spice rack for kitchen@office_products"]}, {"ts": 1781102300.4239852, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0DA04FAA1", "rank": 205, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 67.4, "agreement": 66.7, "supply_gap": 2.0}, "margin_pct": 0.3099, "units_per_month": 9, "found_by": ["search:mini compact cable organizer@office_products"]}, {"ts": 1781102300.4239933, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B02A1D4D6D", "rank": 206, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 64.5, "agreement": 66.7, "supply_gap": 0.6}, "margin_pct": 0.2963, "units_per_month": 9, "found_by": ["search:mini compact cable organizer@office_products"]}, {"ts": 1781102300.4240017, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B031D04750", "rank": 207, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 4.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 80.0, "agreement": 66.7, "supply_gap": 3.2}, "margin_pct": 0.3706, "units_per_month": 13, "found_by": ["search:mini compact cable organizer@kitchen"]}, {"ts": 1781102300.4240098, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E5F38789", "rank": 208, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 4.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 49.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.0197, "units_per_month": 13, "found_by": ["search:travel cable organizer@kitchen"]}, {"ts": 1781102300.4240174, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0A7ABF060", "rank": 209, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 4.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 56.6, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.0376, "units_per_month": 13, "found_by": ["search:compact cable organizer@kitchen"]}, {"ts": 1781102300.4240255, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0042EC873", "rank": 210, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 4.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 64.5, "agreement": 66.7, "supply_gap": 2.6}, "margin_pct": 0.2263, "units_per_month": 13, "found_by": ["search:compact cable organizer@kitchen"]}, {"ts": 1781102300.4240339, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B011D3AB96", "rank": 211, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 4.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 69.1, "agreement": 33.3, "supply_gap": 3.5}, "margin_pct": -0.0852, "units_per_month": 12, "found_by": ["search:cable organizer for small spaces@kitchen"]}, {"ts": 1781102300.424042, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B008DDB043", "rank": 212, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.0, "buzz": 70.2, "idea_affinity": 100, "low_competition": 46.3, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.0857, "units_per_month": 9, "found_by": ["search:cable organizer for kitchen set@office_products"]}, {"ts": 1781102300.42405, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D1FA18EF", "rank": 213, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.7, "buzz": 75.0, "idea_affinity": 100, "low_competition": 87.0, "agreement": 100.0, "supply_gap": 3.4}, "margin_pct": 0.1614, "units_per_month": 11, "found_by": ["search:travel cable organizer organizer@kitchen"]}, {"ts": 1781102300.4240582, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B09B0B4F92", "rank": 214, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.7, "buzz": 53.8, "idea_affinity": 100, "low_competition": 55.2, "agreement": 33.3, "supply_gap": 0.9}, "margin_pct": -0.1095, "units_per_month": 8, "found_by": ["search:cable organizer for small spaces@office_products"]}, {"ts": 1781102300.4240668, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B04B1AD0BF", "rank": 215, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.7, "buzz": 53.8, "idea_affinity": 100, "low_competition": 45.4, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": -0.086, "units_per_month": 8, "found_by": ["search:cable organizer set@office_products"]}, {"ts": 1781102300.4240751, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B079E04A3C", "rank": 216, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 71.0, "agreement": 66.7, "supply_gap": 1.2}, "margin_pct": 0.183, "units_per_month": 7, "found_by": ["search:mini compact cable organizer@office_products"]}, {"ts": 1781102300.424083, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B057493D64", "rank": 217, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 62.6, "agreement": 100.0, "supply_gap": 0.8}, "margin_pct": 0.2824, "units_per_month": 7, "found_by": ["search:mini travel cable organizer@office_products"]}, {"ts": 1781102300.424091, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B33DFBF3", "rank": 218, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 63.0, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.326, "units_per_month": 10, "found_by": ["search:compact spice rack organizer@kitchen"]}, {"ts": 1781102300.4241045, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B03F06811A", "rank": 219, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.3, "buzz": 53.8, "idea_affinity": 100, "low_competition": 55.9, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": 0.1461, "units_per_month": 7, "found_by": ["search:cable organizer set@office_products"]}, {"ts": 1781102300.4241707, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B096B642C3", "rank": 220, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 67.9, "agreement": 66.7, "supply_gap": 0.8}, "margin_pct": 0.337, "units_per_month": 9, "found_by": ["search:compact cable organizer for small spaces@kitchen"]}, {"ts": 1781102300.4241862, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0AC2A571E", "rank": 221, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 83.0, "agreement": 66.7, "supply_gap": 2.2}, "margin_pct": -0.1225, "units_per_month": 7, "found_by": ["search:cable organizer for kitchen for small spaces@office_products"]}, {"ts": 1781102300.4241953, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0F8259078", "rank": 222, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 57.7, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2367, "units_per_month": 7, "found_by": ["search:mini travel spice rack@office_products"]}, {"ts": 1781102300.4242036, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B061B8A1CE", "rank": 223, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 81.3, "agreement": 33.3, "supply_gap": 1.8}, "margin_pct": 0.3556, "units_per_month": 9, "found_by": ["search:cable organizer for small spaces@kitchen"]}, {"ts": 1781102300.4242117, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0FD7EB33B", "rank": 224, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 63.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.1952, "units_per_month": 9, "found_by": ["search:travel spice rack holder@kitchen"]}, {"ts": 1781102300.4242198, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B008EFF24A", "rank": 225, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 69.7, "agreement": 66.7, "supply_gap": 1.1}, "margin_pct": 0.0179, "units_per_month": 7, "found_by": ["search:cable organizer for kitchen@office_products"]}, {"ts": 1781102300.424229, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0284393E2", "rank": 226, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.3, "buzz": 53.8, "idea_affinity": 100, "low_competition": 67.6, "agreement": 33.3, "supply_gap": 1.6}, "margin_pct": 0.1766, "units_per_month": 7, "found_by": ["search:cable organizer for small spaces@office_products"]}, {"ts": 1781102300.4242368, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B09889B150", "rank": 227, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 49.5, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.1745, "units_per_month": 7, "found_by": ["search:cable organizer for kitchen@office_products"]}, {"ts": 1781102300.4242449, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0A2DAF700", "rank": 228, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 65.4, "agreement": 100.0, "supply_gap": 0.5}, "margin_pct": 0.3101, "units_per_month": 6, "found_by": ["search:compact spice rack organizer@office_products"]}, {"ts": 1781102300.4242535, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B07889ACE0", "rank": 229, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 3.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 68.9, "agreement": 100.0, "supply_gap": 2.0}, "margin_pct": 0.3417, "units_per_month": 9, "found_by": ["search:large spice rack for kitchen@kitchen"]}, {"ts": 1781102300.4242616, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B08F19CB6F", "rank": 230, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.0, "buzz": 70.2, "idea_affinity": 100, "low_competition": 79.0, "agreement": 66.7, "supply_gap": 1.9}, "margin_pct": 0.1662, "units_per_month": 6, "found_by": ["search:cable organizer for kitchen set@office_products"]}, {"ts": 1781102300.4242697, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0A14CEA9A", "rank": 231, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 49.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2234, "units_per_month": 6, "found_by": ["search:spice rack organizer@office_products"]}, {"ts": 1781102300.4242778, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0F6D8063B", "rank": 232, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 57.0, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.2836, "units_per_month": 6, "found_by": ["search:compact cable organizer for small spaces@office_products"]}, {"ts": 1781102300.424286, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0A392C747", "rank": 233, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.7, "buzz": 53.8, "idea_affinity": 100, "low_competition": 82.5, "agreement": 33.3, "supply_gap": 2.0}, "margin_pct": 0.3371, "units_per_month": 8, "found_by": ["search:cable organizer set@kitchen"]}, {"ts": 1781102300.4242945, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B02A82DB20", "rank": 234, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 76.7, "agreement": 100.0, "supply_gap": 1.3}, "margin_pct": -0.3703, "units_per_month": 6, "found_by": ["search:travel spice rack@office_products"]}, {"ts": 1781102300.4243026, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B08AE2E8BD", "rank": 235, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 66.0, "agreement": 66.7, "supply_gap": 0.2}, "margin_pct": 0.3106, "units_per_month": 7, "found_by": ["search:compact cable organizer@kitchen"]}, {"ts": 1781102300.4243104, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0403C6113", "rank": 236, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 76.8, "agreement": 100.0, "supply_gap": 1.9}, "margin_pct": 0.0079, "units_per_month": 7, "found_by": ["search:travel cable organizer organizer@kitchen"]}, {"ts": 1781102300.4243186, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0576656CC", "rank": 237, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 79.0, "agreement": 100.0, "supply_gap": 1.4}, "margin_pct": 0.3406, "units_per_month": 7, "found_by": ["search:mini spice rack for kitchen@kitchen"]}, {"ts": 1781102300.4243267, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B052567ECA", "rank": 238, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 75.0, "agreement": 100.0, "supply_gap": 1.6}, "margin_pct": 0.209, "units_per_month": 7, "found_by": ["search:mini compact spice rack@kitchen"]}, {"ts": 1781102300.4243891, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0CD3A9F67", "rank": 239, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 52.0, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3751, "units_per_month": 7, "found_by": ["search:travel cable organizer organizer@kitchen"]}, {"ts": 1781102300.4244037, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B004EB9A07", "rank": 240, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.0, "buzz": 75.0, "idea_affinity": 100, "low_competition": 60.1, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.1356, "units_per_month": 6, "found_by": ["search:travel cable organizer@kitchen"]}, {"ts": 1781102300.4244127, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B01F64D4D3", "rank": 241, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 87.9, "agreement": 33.3, "supply_gap": 1.6}, "margin_pct": 0.2557, "units_per_month": 6, "found_by": ["search:cable organizer for small spaces@kitchen"]}, {"ts": 1781102300.4244213, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0DBFD80CF", "rank": 242, "score": 35.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 2.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 76.3, "agreement": 66.7, "supply_gap": 1.6}, "margin_pct": 0.1093, "units_per_month": 6, "found_by": ["search:compact cable organizer@kitchen"]}, {"ts": 1781102300.4244297, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E4F76665", "rank": 243, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.7, "buzz": 75.0, "idea_affinity": 100, "low_competition": 53.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.0717, "units_per_month": 5, "found_by": ["search:travel cable organizer@office_products"]}, {"ts": 1781102300.4244375, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B064C6E7FD", "rank": 244, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.0, "buzz": 70.2, "idea_affinity": 100, "low_competition": 58.7, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": -0.1701, "units_per_month": 6, "found_by": ["search:cable organizer for kitchen for small spaces@kitchen"]}, {"ts": 1781102300.4244456, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D0F0A48E", "rank": 245, "score": 35.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 60.4, "idea_affinity": 100, "low_competition": 58.9, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.1511, "units_per_month": 4, "found_by": ["search:compact cable organizer for small spaces@office_products"]}, {"ts": 1781102300.4244537, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B08C402007", "rank": 246, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.0, "buzz": 75.0, "idea_affinity": 100, "low_competition": 63.5, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.375, "units_per_month": 6, "found_by": ["search:travel cable organizer@kitchen"]}, {"ts": 1781102300.4244618, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B01C6F7FC3", "rank": 247, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 64.1, "agreement": 66.7, "supply_gap": 0.1}, "margin_pct": 0.2408, "units_per_month": 6, "found_by": ["search:compact cable organizer@kitchen"]}, {"ts": 1781102300.42447, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B048C04C4B", "rank": 248, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 60.6, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": 0.3107, "units_per_month": 6, "found_by": ["search:cable organizer@kitchen"]}, {"ts": 1781102300.424478, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0AF0D1D37", "rank": 249, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 2.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 57.3, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.3289, "units_per_month": 6, "found_by": ["search:compact cable organizer for small spaces@kitchen"]}, {"ts": 1781102300.424486, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B048F7C8BA", "rank": 250, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 54.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2804, "units_per_month": 4, "found_by": ["search:spice rack organizer@office_products"]}, {"ts": 1781102300.4244938, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B07EC59642", "rank": 251, "score": 35.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.7, "buzz": 70.2, "idea_affinity": 100, "low_competition": 61.9, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.1936, "units_per_month": 5, "found_by": ["search:cable organizer for kitchen set@kitchen"]}, {"ts": 1781102300.4245021, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B06B8649B6", "rank": 252, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 64.0, "agreement": 100.0, "supply_gap": 0.3}, "margin_pct": 0.1904, "units_per_month": 5, "found_by": ["search:travel spice rack holder@kitchen"]}, {"ts": 1781102300.4245102, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0EC3F15CC", "rank": 253, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.7, "buzz": 53.8, "idea_affinity": 100, "low_competition": 65.4, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": 0.333, "units_per_month": 5, "found_by": ["search:cable organizer set@kitchen"]}, {"ts": 1781102300.424518, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0600F5345", "rank": 254, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 55.7, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.1219, "units_per_month": 5, "found_by": ["search:spice rack for kitchen@kitchen"]}, {"ts": 1781102300.4245265, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E4C35419", "rank": 255, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 82.2, "agreement": 100.0, "supply_gap": 1.6}, "margin_pct": 0.1503, "units_per_month": 5, "found_by": ["search:mini compact spice rack@kitchen"]}, {"ts": 1781102300.4245346, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B0F49BD4", "rank": 256, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.7, "buzz": 70.2, "idea_affinity": 100, "low_competition": 60.7, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.3647, "units_per_month": 5, "found_by": ["search:cable organizer for kitchen@kitchen"]}, {"ts": 1781102300.4245424, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B043119AE7", "rank": 257, "score": 35.0, "lane": "whitespace", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 65.4, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.1952, "units_per_month": 4, "found_by": ["search:compact spice rack@kitchen"]}, {"ts": 1781102300.424551, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0A05D24CB", "rank": 258, "score": 35.0, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 1.3, "buzz": 75.0, "idea_affinity": 100, "low_competition": 62.0, "agreement": 100.0, "supply_gap": 0.3}, "margin_pct": 0.166, "units_per_month": 4, "found_by": ["search:mini travel cable organizer@kitchen"]}, {"ts": 1781102300.4246516, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B02A990907", "rank": 259, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.3, "buzz": 53.8, "idea_affinity": 100, "low_competition": 73.5, "agreement": 33.3, "supply_gap": 0.5}, "margin_pct": 0.1666, "units_per_month": 4, "found_by": ["search:cable organizer set@kitchen"]}, {"ts": 1781102300.4246707, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0C19CFE45", "rank": 260, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.0, "buzz": 75.0, "idea_affinity": 100, "low_competition": 82.4, "agreement": 100.0, "supply_gap": 0.7}, "margin_pct": 0.0103, "units_per_month": 3, "found_by": ["search:travel cable organizer organizer@office_products"]}, {"ts": 1781102300.42468, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B047CDF186", "rank": 261, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 55.3, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.3135, "units_per_month": 4, "found_by": ["search:compact spice rack organizer@kitchen"]}, {"ts": 1781102300.4246886, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B03B567DFF", "rank": 262, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 67.7, "agreement": 100.0, "supply_gap": 0.4}, "margin_pct": 0.2839, "units_per_month": 4, "found_by": ["search:mini spice rack for kitchen@kitchen"]}, {"ts": 1781102300.424697, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0E2C6F0A8", "rank": 263, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.3, "buzz": 70.2, "idea_affinity": 100, "low_competition": 65.1, "agreement": 66.7, "supply_gap": 0.2}, "margin_pct": 0.0941, "units_per_month": 4, "found_by": ["search:cable organizer for kitchen for small spaces@kitchen"]}, {"ts": 1781102300.424705, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B787D438", "rank": 264, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.3, "buzz": 53.8, "idea_affinity": 100, "low_competition": 55.4, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": 0.0127, "units_per_month": 4, "found_by": ["search:cable organizer@kitchen"]}, {"ts": 1781102300.4247131, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0A8A0DA08", "rank": 265, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 70.1, "agreement": 100.0, "supply_gap": 0.4}, "margin_pct": 0.1963, "units_per_month": 4, "found_by": ["search:spice rack organizer@kitchen"]}, {"ts": 1781102300.4247215, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0AEED036F", "rank": 266, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 77.1, "agreement": 100.0, "supply_gap": 0.6}, "margin_pct": 0.0673, "units_per_month": 4, "found_by": ["search:mini travel spice rack@kitchen"]}, {"ts": 1781102300.4247296, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0927E15EB", "rank": 267, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 58.4, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": -0.0869, "units_per_month": 3, "found_by": ["search:travel spice rack holder@office_products"]}, {"ts": 1781102300.4247375, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0CA71BD71", "rank": 268, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 57.8, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.355, "units_per_month": 4, "found_by": ["search:compact spice rack@kitchen"]}, {"ts": 1781102300.4247458, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0EF47CCEA", "rank": 269, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 87.2, "agreement": 100.0, "supply_gap": 1.1}, "margin_pct": 0.3713, "units_per_month": 4, "found_by": ["search:compact spice rack organizer@kitchen"]}, {"ts": 1781102300.4247541, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B08FAEF02A", "rank": 270, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 74.5, "agreement": 100.0, "supply_gap": 0.5}, "margin_pct": 0.2442, "units_per_month": 4, "found_by": ["search:spice rack@kitchen"]}, {"ts": 1781102300.4247622, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B05052D510", "rank": 271, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.3, "buzz": 91.2, "idea_affinity": 100, "low_competition": 73.0, "agreement": 100.0, "supply_gap": 0.5}, "margin_pct": 0.031, "units_per_month": 4, "found_by": ["search:spice rack@kitchen"]}, {"ts": 1781102300.4247704, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B06CBC8A98", "rank": 272, "score": 35.0, "lane": "whitespace", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 83.9, "agreement": 100.0, "supply_gap": 0.6}, "margin_pct": 0.0503, "units_per_month": 3, "found_by": ["search:mini spice rack@office_products"]}, {"ts": 1781102300.4247782, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0600E6760", "rank": 273, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 91.8, "agreement": 66.7, "supply_gap": 0.9}, "margin_pct": -0.2246, "units_per_month": 3, "found_by": ["search:compact cable organizer for small spaces@office_products"]}, {"ts": 1781102300.4247868, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0089BDBBB", "rank": 274, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 63.7, "agreement": 100.0, "supply_gap": 0.2}, "margin_pct": 0.0919, "units_per_month": 3, "found_by": ["search:compact spice rack@office_products"]}, {"ts": 1781102300.4247947, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B026BA11CA", "rank": 275, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 80.1, "agreement": 100.0, "supply_gap": 0.7}, "margin_pct": 0.0403, "units_per_month": 3, "found_by": ["search:mini travel spice rack@office_products"]}, {"ts": 1781102300.4248028, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0994D80D5", "rank": 276, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 59.4, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": -0.1253, "units_per_month": 3, "found_by": ["search:cable organizer@office_products"]}, {"ts": 1781102300.4248433, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B09706D40E", "rank": 277, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.0, "buzz": 91.2, "idea_affinity": 100, "low_competition": 70.0, "agreement": 100.0, "supply_gap": 0.4}, "margin_pct": 0.145, "units_per_month": 3, "found_by": ["search:compact spice rack organizer@office_products"]}, {"ts": 1781102300.4248552, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B02586EE03", "rank": 278, "score": 35.0, "lane": "whitespace", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 1.0, "buzz": 60.4, "idea_affinity": 100, "low_competition": 66.8, "agreement": 66.7, "supply_gap": 0.0}, "margin_pct": 0.2358, "units_per_month": 3, "found_by": ["search:compact cable organizer for small spaces@kitchen"]}, {"ts": 1781102300.4249241, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B040595389", "rank": 279, "score": 35.0, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 0.7, "buzz": 91.2, "idea_affinity": 100, "low_competition": 64.2, "agreement": 100.0, "supply_gap": 0.0}, "margin_pct": 0.2997, "units_per_month": 2, "found_by": ["search:travel spice rack@office_products"]}, {"ts": 1781102300.424944, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0FBBA28C9", "rank": 280, "score": 33.8, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 14.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 18.1, "agreement": 33.3, "supply_gap": 4.7}, "margin_pct": 0.3088, "units_per_month": 42, "found_by": ["search:cable organizer set@office_products"]}, {"ts": 1781102300.4249597, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B052491569", "rank": 281, "score": 33.7, "lane": "safe", "origin": "bestseller", "marks": ["oversize"], "sub_scores": {"velocity": 62.3, "buzz": 0.0, "idea_affinity": 35, "low_competition": 26.0, "agreement": 0.0, "supply_gap": 54.0}, "margin_pct": 0.3561, "units_per_month": 187, "found_by": ["best_sellers:kitchen"]}, {"ts": 1781102300.4249744, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B04693A8A7", "rank": 282, "score": 33.4, "lane": "safe", "origin": "seed", "marks": [], "sub_scores": {"velocity": 10.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 25.1, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": 0.4703, "units_per_month": 30, "found_by": ["search:cable organizer@kitchen"]}, {"ts": 1781102300.4249885, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B09C4CD756", "rank": 283, "score": 29.8, "lane": "safe", "origin": "seed", "marks": ["oversize"], "sub_scores": {"velocity": 17.0, "buzz": 53.8, "idea_affinity": 100, "low_competition": 0.0, "agreement": 33.3, "supply_gap": 0.0}, "margin_pct": 0.2253, "units_per_month": 51, "found_by": ["search:cable organizer set@office_products"]}, {"ts": 1781102300.4249973, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0D40D36A9", "rank": 284, "score": 27.0, "lane": "safe", "origin": "bestseller", "marks": ["oversize"], "sub_scores": {"velocity": 100.0, "buzz": 0.0, "idea_affinity": 35, "low_competition": 2.0, "agreement": 0.0, "supply_gap": 6.7}, "margin_pct": 0.0079, "units_per_month": 554, "found_by": ["best_sellers:office_products"]}, {"ts": 1781102300.4250062, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B05E24FC87", "rank": 285, "score": 25.5, "lane": "safe", "origin": "bestseller", "marks": [], "sub_scores": {"velocity": 45.7, "buzz": 0.0, "idea_affinity": 35, "low_competition": 22.0, "agreement": 0.0, "supply_gap": 33.5}, "margin_pct": 0.2305, "units_per_month": 137, "found_by": ["best_sellers:office_products"]}, {"ts": 1781102300.4250145, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B2C71A6A", "rank": 286, "score": 22.3, "lane": "safe", "origin": "bestseller", "marks": ["oversize"], "sub_scores": {"velocity": 44.0, "buzz": 0.0, "idea_affinity": 35, "low_competition": 17.6, "agreement": 0.0, "supply_gap": 23.5}, "margin_pct": 0.3683, "units_per_month": 132, "found_by": ["best_sellers:kitchen"]}, {"ts": 1781102300.4250226, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0DE981CCF", "rank": 287, "score": 18.6, "lane": "safe", "origin": "bestseller", "marks": ["oversize"], "sub_scores": {"velocity": 66.7, "buzz": 0.0, "idea_affinity": 35, "low_competition": 0.0, "agreement": 0.0, "supply_gap": 0.0}, "margin_pct": 0.3074, "units_per_month": 200, "found_by": ["best_sellers:kitchen"]}, {"ts": 1781102300.425031, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B04F42E031", "rank": 288, "score": 14.4, "lane": "safe", "origin": "bestseller", "marks": [], "sub_scores": {"velocity": 20.0, "buzz": 0.0, "idea_affinity": 35, "low_competition": 25.6, "agreement": 0.0, "supply_gap": 0.0}, "margin_pct": 0.3584, "units_per_month": 60, "found_by": ["best_sellers:office_products"]}, {"ts": 1781102300.425039, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B0B594B8BC", "rank": 289, "score": 13.4, "lane": "safe", "origin": "bestseller", "marks": [], "sub_scores": {"velocity": 40.7, "buzz": 0.0, "idea_affinity": 35, "low_competition": 0.0, "agreement": 0.0, "supply_gap": 0.0}, "margin_pct": 0.3719, "units_per_month": 122, "found_by": ["best_sellers:kitchen"]}, {"ts": 1781102300.4250472, "run_id": "20260610-143820", "kind": "candidate_ranked", "asin": "B06B88A59D", "rank": 290, "score": 13.2, "lane": "safe", "origin": "bestseller", "marks": ["oversize"], "sub_scores": {"velocity": 39.7, "buzz": 0.0, "idea_affinity": 35, "low_competition": 0.0, "agreement": 0.0, "supply_gap": 0.0}, "margin_pct": -0.0501, "units_per_month": 119, "found_by": ["best_sellers:office_products"]}, {"ts": 1781102300.4269037, "run_id": "20260610-143820", "kind": "guardrails", "G2_data": "MOCK DATA \u2014 not real market data; wire the apify connector", "G3_size_or_compliance_marked": 150, "G4_below_margin_floor": 0, "G5_saturated_in_shortlist": 3}, {"ts": 1781102300.4269214, "run_id": "20260610-143820", "kind": "run_closed", "events_written": 321}];
+</script>
+<script>
+/* Phase 1 dashboard — vanilla JS, talks to serve.py's JSON API. */
+"use strict";
+
+const $ = (sel) => document.querySelector(sel);
+const LANES = ["safe", "early", "whitespace"];
+const LANE_LABEL = { safe: "🟢 Safe", early: "🟡 Early", whitespace: "🔵 Whitespace" };
+
+const state = { data: null, ledger: null, lane: "all" };
+/* Static snapshot mode: tools/export_static.py embeds the run data so the
+   page works with no server (GitHub Pages, file://, htmlpreview). */
+const STATIC = Boolean(window.__ENGINE_DATA__);
+
+function esc(s) {
+  return String(s ?? "").replace(/[&<>"']/g,
+    (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+const money = (n) => "$" + Number(n).toFixed(2);
+const pct = (n) => (Number(n) * 100).toFixed(1) + "%";
+
+async function getJSON(url, opts) {
+  const res = await fetch(url, opts);
+  const body = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(body.error || `${url} -> HTTP ${res.status}`);
+  return body;
+}
+
+/* ---------- run form ---------- */
+
+async function initForm() {
+  const cfg = await getJSON("/api/config");
+  $("#seeds").value = cfg.defaults.seeds;
+  $("#cats").innerHTML = cfg.categories.map((c, i) =>
+    `<label><input type="checkbox" value="${esc(c)}" ${i < 2 ? "checked" : ""}>${esc(c)}</label>`
+  ).join("");
+  $("#persona").innerHTML = cfg.personas.map((p) =>
+    `<option value="${esc(p)}">${esc(p)}</option>`).join("");
+}
+
+async function runEngine() {
+  const btn = $("#runBtn"), status = $("#runStatus");
+  btn.disabled = true;
+  status.className = "status";
+  status.textContent = "running scouts → fan-out → filter → economics → fusion…";
+  try {
+    const payload = {
+      seeds: $("#seeds").value,
+      categories: [...document.querySelectorAll("#cats input:checked")].map((x) => x.value),
+      persona: $("#persona").value,
+      price_min: $("#priceMin").value,
+      price_max: $("#priceMax").value,
+      proven_mode: $("#provenMode").value,
+      ai: $("#aiBackend").value,
+      exclude: $("#exclude").value,
+    };
+    state.data = await getJSON("/api/run", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+    state.ledger = null;                      // stale now; refetched on tab open
+    status.textContent = `run ${state.data.run_id} done — ${state.data.total_ranked} ranked`;
+    renderAll();
+    if ($("#ledger").hidden === false) loadLedger();
+  } catch (e) {
+    status.className = "status err";
+    status.textContent = e.message;
+  } finally {
+    btn.disabled = false;
+  }
+}
+
+/* ---------- rendering ---------- */
+
+function renderAll() {
+  renderMeta();
+  renderGuardrails();
+  renderLaneChips();
+  renderTable();
+}
+
+function renderMeta() {
+  const d = state.data;
+  if (!d) { $("#runMeta").innerHTML = ""; return; }
+  const mock = d.connector === "mock";
+  $("#runMeta").innerHTML = `
+    <span class="badge">run ${esc(d.run_id)}</span>
+    <span class="badge">persona ${esc(d.ctx.persona)}</span>
+    <span class="badge">ai ${esc(d.ai_backend)}</span>
+    <span class="badge ${mock ? "warn" : ""}">${mock ? "⚠ MOCK DATA" : "live data"}</span>`;
+}
+
+function renderGuardrails() {
+  const d = state.data;
+  if (!d) { $("#guardrails").innerHTML = ""; return; }
+  const g = d.guardrails, budget = g.G1_budget || {};
+  const bars = Object.entries(budget).map(([r, b]) => {
+    const used = b.cap ? Math.min(100, (b.spent / b.cap) * 100) : 0;
+    return `<div class="sub2">${esc(r)} ${b.spent}/${b.cap ?? "∞"}${b.denied ? " · denied " + b.denied : ""}</div>
+            <div class="bar"><i class="${used >= 100 ? "full" : ""}" style="width:${used}%"></i></div>`;
+  }).join("");
+  $("#guardrails").innerHTML = `
+    <div class="gcard"><div class="k">G1 · budget</div>${bars}</div>
+    <div class="gcard"><div class="k">G2 · data source</div>
+      <div class="v ${d.connector === "mock" ? "warn" : ""}">${d.connector === "mock" ? "mock" : "live"}</div>
+      <div class="sub2">${esc(String(g.G2_data))}</div></div>
+    <div class="gcard"><div class="k">G3 · size/compliance marks</div>
+      <div class="v">${g.G3_size_or_compliance_marked}</div><div class="sub2">marked, never silently dropped</div></div>
+    <div class="gcard"><div class="k">G4 · below margin floor</div>
+      <div class="v ${g.G4_below_margin_floor ? "warn" : ""}">${g.G4_below_margin_floor}</div>
+      <div class="sub2">in shortlist</div></div>
+    <div class="gcard"><div class="k">G5 · saturated</div>
+      <div class="v ${g.G5_saturated_in_shortlist ? "warn" : ""}">${g.G5_saturated_in_shortlist}</div>
+      <div class="sub2">in shortlist</div></div>`;
+}
+
+function renderLaneChips() {
+  const counts = { all: 0, safe: 0, early: 0, whitespace: 0 };
+  (state.data?.candidates || []).forEach((c) => { counts.all++; counts[c.lane]++; });
+  $("#laneChips").innerHTML = ["all", ...LANES].map((l) =>
+    `<button class="chip ${state.lane === l ? "active" : ""}" data-lane="${l}">
+       ${l === "all" ? "All" : LANE_LABEL[l]} (${counts[l]})</button>`).join("");
+  document.querySelectorAll(".chip").forEach((ch) =>
+    ch.addEventListener("click", () => { state.lane = ch.dataset.lane; renderLaneChips(); renderTable(); }));
+}
+
+function renderTable() {
+  const tbody = $("#candTable tbody");
+  const cands = (state.data?.candidates || [])
+    .filter((c) => state.lane === "all" || c.lane === state.lane);
+  $("#empty").hidden = Boolean(state.data);
+  tbody.innerHTML = cands.map((c, i) => {
+    const e = c.economics, r = c.raw;
+    return `<tr data-asin="${esc(c.asin)}">
+      <td>${i + 1}</td>
+      <td><span class="lane ${c.lane}">${LANE_LABEL[c.lane]}</span></td>
+      <td title="${esc(r.title)}">${esc(r.title.slice(0, 52))}<div class="prov">${esc(c.asin)} · ${esc(r.category)} · ${esc(r.trend)}</div></td>
+      <td class="num">${money(r.price)}</td>
+      <td class="num">${e.units_per_month}</td>
+      <td class="num">${money(e.revenue_per_month)}</td>
+      <td class="num">${pct(e.margin_pct)}</td>
+      <td class="num">${c.score}<span class="scorebar"><i style="width:${Math.min(100, c.score)}%"></i></span></td>
+      <td>${c.marks.map((m) => `<span class="mark">${esc(m)}</span>`).join("") || "—"}</td>
+    </tr>`;
+  }).join("");
+  tbody.querySelectorAll("tr").forEach((tr) =>
+    tr.addEventListener("click", () => openDrawer(tr.dataset.asin)));
+}
+
+function openDrawer(asin) {
+  const c = (state.data?.candidates || []).find((x) => x.asin === asin);
+  if (!c) return;
+  const e = c.economics, r = c.raw;
+  const sbars = Object.entries(c.sub_scores).map(([k, v]) => `
+    <div class="sbar"><div class="lab"><span>${esc(k)}</span><span>${v}</span></div>
+    <div class="track"><i style="width:${Math.min(100, v)}%"></i></div></div>`).join("");
+  $("#drawerBody").innerHTML = `
+    <h2>${esc(r.title)}</h2>
+    <span class="lane ${c.lane}">${LANE_LABEL[c.lane]}</span> · score <b>${c.score}</b> · origin ${esc(c.origin)}
+    ${c.rationale ? `<div class="rationale">${esc(c.rationale)}</div>` : ""}
+    ${c.compliance_notes.map((n) =>
+      `<div class="compliance">⚠ <b>${esc(n.mark)}</b> (${esc(n.risk)} risk) — ${esc(n.action)}</div>`).join("")}
+    <h3>Sub-scores</h3>${sbars}
+    <h3>Economics (est.)</h3>
+    <div class="kv">
+      <span class="k">price</span><span>${money(r.price)}</span>
+      <span class="k">units / mo</span><span>${e.units_per_month}</span>
+      <span class="k">revenue / mo</span><span>${money(e.revenue_per_month)}</span>
+      <span class="k">referral fee</span><span>${money(e.referral_fee)}</span>
+      <span class="k">FBA fee</span><span>${money(e.fba_fee)}</span>
+      <span class="k">landed (assumed)</span><span>${money(e.landed_cost_est)}</span>
+      <span class="k">net margin</span><span><b>${pct(e.margin_pct)}</b></span>
+      <span class="k">breakeven price</span><span>${money(e.breakeven_price)}</span>
+      <span class="k">FBA ready</span><span>${e.fba_ready ? "✅" : "❌ (score capped)"}</span>
+    </div>
+    <h3>Market snapshot</h3>
+    <div class="kv">
+      <span class="k">BSR</span><span>${r.bsr}</span>
+      <span class="k">trend</span><span>${esc(r.trend)}</span>
+      <span class="k">rating</span><span>${r.rating}★ · ${r.reviews_count} reviews</span>
+      <span class="k">sellers</span><span>${r.sellers_count}</span>
+      <span class="k">weight</span><span>${r.weight_oz} oz</span>
+    </div>
+    <h3>Provenance — found by</h3>
+    <div class="prov">${r.found_by.map((f) => `<code>${esc(f)}</code>`).join("")}</div>`;
+  $("#drawer").hidden = false;
+}
+
+/* ---------- ledger tab ---------- */
+
+async function loadLedger() {
+  try {
+    if (!state.ledger) {
+      state.ledger = STATIC ? (window.__ENGINE_LEDGER__ || [])
+                            : (await getJSON("/api/ledger")).events;
+    }
+  } catch (e) {
+    $("#ledgerSummary").innerHTML = `<span class="badge warn">${esc(e.message)}</span>`;
+    return;
+  }
+  const ev = state.ledger;
+  const counts = {};
+  ev.forEach((x) => { counts[x.kind] = (counts[x.kind] || 0) + 1; });
+  $("#ledgerSummary").innerHTML = Object.entries(counts).map(([k, n]) =>
+    `<span class="badge">${esc(k)} × ${n}</span>`).join("");
+  $("#dropTable tbody").innerHTML = ev.filter((x) => x.kind === "candidate_dropped")
+    .slice(0, 60).map((x) => `<tr>
+      <td>${esc(x.asin)}</td><td>${esc(x.title)}</td>
+      <td class="num">${money(x.price)}</td><td><span class="mark">${esc(x.reason)}</span></td></tr>`)
+    .join("") || `<tr><td colspan="4">no drops this run</td></tr>`;
+  $("#seamTable tbody").innerHTML = ev.filter((x) => x.kind === "ai_seam")
+    .map((x) => `<tr><td>${esc(x.seam)}</td><td>${esc(x.backend)}</td>
+      <td class="prov">${esc((x.result_summary || "").slice(0, 160))}</td></tr>`)
+    .join("") || `<tr><td colspan="3">none</td></tr>`;
+}
+
+/* ---------- wiring ---------- */
+
+document.querySelectorAll(".tab").forEach((t) => t.addEventListener("click", () => {
+  document.querySelectorAll(".tab").forEach((x) => x.classList.toggle("active", x === t));
+  const ledger = t.dataset.tab === "ledger";
+  $("#results").hidden = ledger;
+  $("#ledger").hidden = !ledger;
+  if (ledger) loadLedger();
+}));
+$("#runBtn").addEventListener("click", runEngine);
+$("#drawerClose").addEventListener("click", () => { $("#drawer").hidden = true; });
+document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("#drawer").hidden = true; });
+
+(async function init() {
+  if (STATIC) {
+    state.data = window.__ENGINE_DATA__;
+    const ctx = state.data.ctx || {};
+    $("#seeds").value = (ctx.seeds || []).join(", ");
+    $("#persona").innerHTML = `<option>${esc(ctx.persona || "default")}</option>`;
+    $("#cats").innerHTML = (ctx.categories || []).map((c) =>
+      `<label><input type="checkbox" checked disabled>${esc(c)}</label>`).join("");
+    $("#runPanel").querySelectorAll("input, select, textarea, #runBtn")
+      .forEach((el) => { el.disabled = true; });
+    $("#runStatus").textContent =
+      "static snapshot — clone the repo and run `python3 serve.py` for live runs";
+    renderAll();
+    return;
+  }
+  try { await initForm(); } catch (e) { $("#runStatus").textContent = e.message; }
+  try {
+    state.data = await getJSON("/api/shortlist");
+    renderAll();
+  } catch {
+    $("#empty").hidden = false;          // no run yet — that's fine
+  }
+})();
+
+</script>
+</body>
+</html>

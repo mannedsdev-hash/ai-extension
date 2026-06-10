@@ -6,6 +6,9 @@ const LANES = ["safe", "early", "whitespace"];
 const LANE_LABEL = { safe: "🟢 Safe", early: "🟡 Early", whitespace: "🔵 Whitespace" };
 
 const state = { data: null, ledger: null, lane: "all" };
+/* Static snapshot mode: tools/export_static.py embeds the run data so the
+   page works with no server (GitHub Pages, file://, htmlpreview). */
+const STATIC = Boolean(window.__ENGINE_DATA__);
 
 function esc(s) {
   return String(s ?? "").replace(/[&<>"']/g,
@@ -186,7 +189,10 @@ function openDrawer(asin) {
 
 async function loadLedger() {
   try {
-    if (!state.ledger) state.ledger = (await getJSON("/api/ledger")).events;
+    if (!state.ledger) {
+      state.ledger = STATIC ? (window.__ENGINE_LEDGER__ || [])
+                            : (await getJSON("/api/ledger")).events;
+    }
   } catch (e) {
     $("#ledgerSummary").innerHTML = `<span class="badge warn">${esc(e.message)}</span>`;
     return;
@@ -221,6 +227,20 @@ $("#drawerClose").addEventListener("click", () => { $("#drawer").hidden = true; 
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") $("#drawer").hidden = true; });
 
 (async function init() {
+  if (STATIC) {
+    state.data = window.__ENGINE_DATA__;
+    const ctx = state.data.ctx || {};
+    $("#seeds").value = (ctx.seeds || []).join(", ");
+    $("#persona").innerHTML = `<option>${esc(ctx.persona || "default")}</option>`;
+    $("#cats").innerHTML = (ctx.categories || []).map((c) =>
+      `<label><input type="checkbox" checked disabled>${esc(c)}</label>`).join("");
+    $("#runPanel").querySelectorAll("input, select, textarea, #runBtn")
+      .forEach((el) => { el.disabled = true; });
+    $("#runStatus").textContent =
+      "static snapshot — clone the repo and run `python3 serve.py` for live runs";
+    renderAll();
+    return;
+  }
   try { await initForm(); } catch (e) { $("#runStatus").textContent = e.message; }
   try {
     state.data = await getJSON("/api/shortlist");
