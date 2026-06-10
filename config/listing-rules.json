@@ -1,0 +1,94 @@
+{
+  "meta": {
+    "note": "Amazon listing style rules and limits used by the Stage 2 listing-agent skills. Approximate and dated — verify against your category's current Amazon style guide in Seller Central before publishing. Edit freely; skills read this file, nothing is hardcoded."
+  },
+  "title": {
+    "max_chars_default": 200,
+    "recommended_chars": 150,
+    "format": "Brand + Product Type + Key Attributes + Size/Count + Top Differentiator",
+    "rules": [
+      "Capitalize the first letter of each word; no ALL-CAPS words",
+      "Use numerals, not spelled-out numbers (2-Pack, not Two Pack)",
+      "No promotional language (sale, free shipping, hot item, deal)",
+      "No subjective claims (best, #1, top rated, premium quality)",
+      "No special characters: ! $ ? _ { } # < > | ; ^ ~ *"
+    ]
+  },
+  "bullets": {
+    "count": 5,
+    "max_chars_per_bullet": 200,
+    "recommended_chars_per_bullet": 150,
+    "rules": [
+      "Lead each bullet with a short capitalized benefit phrase",
+      "One benefit per bullet, backed by a concrete feature from the spec",
+      "No pricing, promotions, shipping, or seller/company information",
+      "No prohibited claims (see prohibited_claims)",
+      "Sentence fragments are fine; no closing punctuation required"
+    ]
+  },
+  "backend_search_terms": {
+    "max_bytes": 250,
+    "rules": [
+      "Do not repeat words already present in the title or bullets",
+      "No competitor brand names, no ASINs",
+      "Lowercase, space-separated, no commas or quotation marks",
+      "Use singular or plural of a word, not both"
+    ]
+  },
+  "prohibited_claims": {
+    "always_banned": [
+      "best seller",
+      "#1 / number one",
+      "top rated",
+      "100% satisfaction guaranteed",
+      "money-back guarantee",
+      "cure / treat / prevent any condition",
+      "FDA approved",
+      "antibacterial or antimicrobial without EPA registration",
+      "eco-friendly / biodegradable without certification on file"
+    ],
+    "needs_proof_on_file": [
+      "patented / patent-pending",
+      "clinically proven / lab tested",
+      "certified organic",
+      "UL listed / CE marked / FCC certified",
+      "FDA registered",
+      "BPA-free or food-grade material claims"
+    ]
+  },
+  "aplus": {
+    "max_modules": 7,
+    "recommended_module_sequence": [
+      "brand_story_banner",
+      "feature_trio",
+      "comparison_chart",
+      "lifestyle_banner",
+      "specs_or_faq"
+    ],
+    "rules": [
+      "Never name, show, or disparage competitor brands; comparison charts compare against an unbranded 'standard' alternative or your own variants only",
+      "No pricing, promotion, shipping, or guarantee language anywhere in A+ content",
+      "No claims beyond those already cleared for the title and bullets",
+      "Every image's overlay text must also be provided as alt/keyword text (accessibility requirement)"
+    ]
+  },
+  "images": {
+    "slots": 9,
+    "min_resolution_px": 1600,
+    "main_image_rules": [
+      "Pure white background (RGB 255, 255, 255)",
+      "Product fills at least 85% of the frame",
+      "No props, text, logos, watermarks, badges, or graphics",
+      "Show exactly and only what is in the box"
+    ],
+    "recommended_shot_types": [
+      "main_white",
+      "benefit_callout_infographic",
+      "lifestyle_in_use",
+      "scale_or_dimensions",
+      "feature_closeup",
+      "how_to_or_comparison",
+      "packaging_or_whats_in_box"
+    ]
+  }
+}

@@ -3,8 +3,9 @@
 A multi-agent system for the Amazon e-commerce pipeline. See [PLAN.md](PLAN.md)
 for the original full build brief.
 
-**Status:** Stage 1 (`product-research-agent`) is built, on the **free stack**
-(Apify only). Stages 2-5 are mapped in PLAN.md but not yet built.
+**Status:** Stage 1 (`product-research-agent`) and Stage 2 (`listing-agent`)
+are built. Stage 1 runs on the **free stack** (Apify only); Stage 2 needs no
+external server at all. Stages 3-5 are mapped in PLAN.md but not yet built.
 
 ## Free-stack setup (current build)
 
@@ -26,20 +27,26 @@ The two skills that originally used Keepa (`demand-competition-analyst`,
 ```
 .claude/
   agents/product-research-agent.md   Stage 1 subagent
-  skills/                            the six Stage 1 skills
+  agents/listing-agent.md            Stage 2 subagent
+  skills/                            Stage 1 + Stage 2 skills
     reddit-pain-miner/        (idle until Reddit is added)
     demand-competition-analyst/   uses Apify
     review-gap-analyst/           uses Apify
     pricing-competitor-analyst/   uses Apify
     margin-scorer/        SKILL.md + calc.py (works offline, no keys)
     opportunity-scorer/
+    title-and-bullets/    Stage 2 — listing copy (offline, no keys)
+    aplus-copy/           Stage 2 — A+ content plan (offline, no keys)
+    image-brief/          Stage 2 — photo/design brief (offline, no keys)
 config/
   amazon-fees.json         editable Amazon/FBA fee schedule
   scoring-rubric.json      opportunity-scorer weights + verdict thresholds
   thresholds.json          margin threshold, saturation rules, run/spend caps
+  listing-rules.json       Amazon listing style limits + prohibited claims
 data/
   products.json / competitors.json / painpoints.json   shared data store
   reports/                 generated opportunity reports
+  listings/                Stage 2 listing packages, one folder per product
   cache/                   raw tool output (gitignored)
 .mcp.json.example          MCP server config template (committed)
 .mcp.json                  live MCP config — holds the Apify token (gitignored)
@@ -67,6 +74,18 @@ Once `apify` is connected, ask Claude Code:
 
 It runs the available skills in order and writes a ranked opportunity report
 to `data/reports/`. `reddit-pain-miner` is skipped until Reddit is added.
+
+## Running Stage 2 (works now, no keys)
+
+Stage 2 turns ONE validated opportunity into a full listing package and runs
+fully offline. Once a Stage 1 report exists in `data/reports/`, ask:
+
+> Use the listing-agent on `<product>` from the latest report
+
+It first collects a product spec from you — copy may only claim what the spec
+states — then writes the title + bullets + backend search terms, an A+
+content plan, and a photographer/designer image brief to
+`data/listings/<product>/` (`spec.json`, `listing.json`, `listing.md`).
 
 ## Margin scorer (works now, no keys)
 
@@ -118,6 +137,9 @@ on **GitHub Pages**:
 - The brief's §3.6 references an "existing `market-brainstorm` skill" — no such
   skill exists in this repo. Its evidence-first synthesis is built into
   `opportunity-scorer`.
-- **Stages 2-5 are not built** — only mapped in PLAN.md.
+- **Stages 3-5 are not built** — only mapped in PLAN.md.
 - Fee numbers in `config/amazon-fees.json` are approximate and dated; verify
   against Amazon's current schedule before any money decision.
+- Listing limits in `config/listing-rules.json` are likewise approximate;
+  verify your category's current style guide in Seller Central before
+  publishing a listing.
