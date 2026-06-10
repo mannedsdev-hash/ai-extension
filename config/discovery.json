@@ -1,0 +1,57 @@
+{
+  "meta": {
+    "note": "Phase 1 engine knobs. BSR->units curves are ROUGH category proxies (units/mo ~= a * bsr^-b) — replace with Keepa/JungleScout-calibrated curves when a paid source is wired. Everything here is config-not-code on purpose."
+  },
+  "connector": "mock",
+  "bsr_to_units": {
+    "default": { "a": 90000, "b": 0.85 },
+    "kitchen": { "a": 130000, "b": 0.87 },
+    "home_and_kitchen": { "a": 130000, "b": 0.87 },
+    "office_products": { "a": 70000, "b": 0.84 },
+    "pet_supplies": { "a": 85000, "b": 0.86 },
+    "toys_and_games": { "a": 110000, "b": 0.88 },
+    "sports_and_outdoors": { "a": 95000, "b": 0.86 },
+    "baby_products": { "a": 60000, "b": 0.84 }
+  },
+  "economics": {
+    "assumed_cogs_ratio": 0.25,
+    "margin_floor": 0.20,
+    "velocity_ref_units": 300,
+    "reviews_ref": 800,
+    "sellers_ref": 15
+  },
+  "size_limits": {
+    "oversize_weight_oz": 48,
+    "oversize_longest_side_in": 18
+  },
+  "lanes": {
+    "safe_min_reviews": 150,
+    "early_max_reviews": 150,
+    "whitespace_max_reviews": 60,
+    "social_hot_growth_pct": 15
+  },
+  "run_limits": {
+    "max_pool_terms": 14,
+    "max_connector_calls": 90,
+    "max_social_terms": 8,
+    "max_trend_checks": 25,
+    "shortlist_size": 10
+  },
+  "compliance_keywords": {
+    "supplement": "ingestible",
+    "vitamin": "ingestible",
+    "gummies": "ingestible",
+    "battery": "hazmat",
+    "lithium": "hazmat",
+    "magnetic": "hazmat",
+    "knife": "restricted_age",
+    "blade": "restricted_age",
+    "crib": "safety_cert",
+    "baby sleep": "safety_cert",
+    "car seat": "safety_cert",
+    "bluetooth": "fcc",
+    "wireless charger": "fcc",
+    "sunscreen": "topical",
+    "serum": "topical"
+  }
+}

@@ -1,0 +1,37 @@
+{
+  "meta": {
+    "note": "Persona presets for engine/fusion.py. Weights must sum to ~1.0 across the six sub-scores. Pick with run_engine.py --persona <name>. Edit freely or add your own."
+  },
+  "default": {
+    "velocity": 0.20,
+    "buzz": 0.15,
+    "idea_affinity": 0.15,
+    "low_competition": 0.20,
+    "agreement": 0.10,
+    "supply_gap": 0.20
+  },
+  "velocity_hunter": {
+    "velocity": 0.40,
+    "buzz": 0.10,
+    "idea_affinity": 0.05,
+    "low_competition": 0.15,
+    "agreement": 0.05,
+    "supply_gap": 0.25
+  },
+  "whitespace_scout": {
+    "velocity": 0.05,
+    "buzz": 0.25,
+    "idea_affinity": 0.15,
+    "low_competition": 0.15,
+    "agreement": 0.25,
+    "supply_gap": 0.15
+  },
+  "low_risk": {
+    "velocity": 0.25,
+    "buzz": 0.05,
+    "idea_affinity": 0.10,
+    "low_competition": 0.35,
+    "agreement": 0.05,
+    "supply_gap": 0.20
+  }
+}

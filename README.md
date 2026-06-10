@@ -1,7 +1,16 @@
 # E-commerce Research & Ops Agent System
 
-A multi-agent system for the Amazon e-commerce pipeline. See [PLAN.md](PLAN.md)
-for the original full build brief.
+An AI + data driven system for the full Amazon seller flow. Two layers:
+
+- **Deterministic engine** (`engine/`) — data pulls, math, scoring, ledger.
+  Reproducible, budget-capped, testable. AI never does arithmetic.
+- **AI seams + skills** (`.claude/`) — judgment steps (concept expansion,
+  whitespace synthesis, compliance triage, rationale, copywriting) done by
+  Claude through named, ledgered seams. Data never gets invented.
+
+[PHASES.md](PHASES.md) is the master spec: all 8 phases (research → keywords
+→ sourcing → import → listing → launch → PPC → operations) at module-level
+granularity. [PLAN.md](PLAN.md) is the original Stage 1-5 brief it grew from.
 
 **Status:** Stage 1 (`product-research-agent`) and Stage 2 (`listing-agent`)
 are built. Stage 1 runs on the **free stack** (Apify only); Stage 2 needs no
@@ -22,9 +31,29 @@ The two skills that originally used Keepa (`demand-competition-analyst`,
 `pricing-competitor-analyst`) were **re-pointed to Apify**. Tradeoff: you get
 *current* price/rank/review data, not *historical trends*.
 
+## Phase 1 engine (works now, no keys)
+
+```sh
+python3 run_engine.py --demo                       # mock connector, reproducible
+python3 run_engine.py --seeds "spice rack" --categories kitchen \
+    --persona whitespace_scout --ai claude_session  # queue AI seams for Claude
+```
+
+Scouts (custom/proven/social) → SearchResolver fan-out → rough_filter →
+economics → persona-weighted fusion → 🟢/🟡/🔵 lanes → `data/runs/shortlist.json`
+plus a full decision ledger (`data/runs/<run id>.jsonl`). Every paid call is
+budget-governed; every drop has a ledgered reason. Personas and thresholds
+live in `config/personas.json` / `config/discovery.json`. The mock connector
+is deterministic fake data — wire Apify for real pulls (PHASES.md, Phase 1).
+
 ## Layout
 
 ```
+PHASES.md                  8-phase master spec (module-level granularity)
+engine/                    Phase 1 Discover engine (stdlib-only Python)
+  models.py · scouts.py · discovery.py · filters.py · economics.py ·
+  fusion.py · budget.py · ledger.py · ai.py · connectors/ (mock built)
+run_engine.py              Phase 1 CLI
 .claude/
   agents/product-research-agent.md   Stage 1 subagent
   agents/listing-agent.md            Stage 2 subagent
@@ -47,6 +76,7 @@ data/
   products.json / competitors.json / painpoints.json   shared data store
   reports/                 generated opportunity reports
   listings/                Stage 2 listing packages, one folder per product
+  runs/                    engine ledgers + shortlist.json (gitignored — your flywheel)
   cache/                   raw tool output (gitignored)
 .mcp.json.example          MCP server config template (committed)
 .mcp.json                  live MCP config — holds the Apify token (gitignored)

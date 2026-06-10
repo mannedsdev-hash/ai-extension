@@ -9,6 +9,10 @@
 data/cache/*
 !data/cache/.gitkeep
 
+# Engine run output — your ledger is YOUR flywheel data, keep it local
+data/runs/*
+!data/runs/.gitkeep
+
 # Python
 __pycache__/
 *.pyc
