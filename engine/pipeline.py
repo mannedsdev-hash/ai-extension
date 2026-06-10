@@ -27,11 +27,15 @@ def load_configs(base: str = "config") -> tuple[dict, dict]:
     return cfg, personas
 
 
-def run_discover(ctx: RunContext, ai_backend: str = "heuristic") -> dict:
+def run_discover(ctx: RunContext, ai_backend: str = "heuristic",
+                 connector_name: str | None = None) -> dict:
     cfg, personas = load_configs()
     if ctx.persona not in personas:
         raise ValueError(f"unknown persona '{ctx.persona}'")
-    limits = cfg["run_limits"]
+    cfg["connector"] = connector_name or cfg["connector"]
+    limits = dict(cfg["run_limits"])
+    if cfg["connector"] == "apify":     # real actor runs are slow + cost credits
+        limits["max_connector_calls"] = cfg["apify"]["max_connector_calls"]
     ctx.shortlist_size = ctx.shortlist_size or limits["shortlist_size"]
 
     ledger = Ledger()
@@ -42,7 +46,7 @@ def run_discover(ctx: RunContext, ai_backend: str = "heuristic") -> dict:
         "trend_checks": limits["max_trend_checks"],
     })
     ai = AIGate(ledger, governor, backend=ai_backend)
-    connector = get_connector(cfg["connector"])
+    connector = get_connector(cfg["connector"], cfg)
 
     # WAVE 1 — scouts
     pool = CustomScout(ai, ledger).run(ctx, limits["max_pool_terms"])

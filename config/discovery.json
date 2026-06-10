@@ -3,6 +3,24 @@
     "note": "Phase 1 engine knobs. BSR->units curves are ROUGH category proxies (units/mo ~= a * bsr^-b) — replace with Keepa/JungleScout-calibrated curves when a paid source is wired. Everything here is config-not-code on purpose."
   },
   "connector": "mock",
+  "cache_ttl_hours": 24,
+  "apify": {
+    "note": "Actor ids drift — verify in the Apify store. Each search/detail is one actor run (slow, costs credits); max_connector_calls below overrides run_limits when this connector is active.",
+    "search_actor": "junglee~amazon-crawler",
+    "detail_actor": "junglee~amazon-crawler",
+    "marketplace": "https://www.amazon.com",
+    "max_items_per_search": 12,
+    "max_connector_calls": 10,
+    "bestseller_urls": {
+      "kitchen": "https://www.amazon.com/gp/bestsellers/kitchen",
+      "home_and_kitchen": "https://www.amazon.com/gp/bestsellers/home-garden",
+      "office_products": "https://www.amazon.com/gp/bestsellers/office-products",
+      "pet_supplies": "https://www.amazon.com/gp/bestsellers/pet-supplies",
+      "toys_and_games": "https://www.amazon.com/gp/bestsellers/toys-and-games",
+      "sports_and_outdoors": "https://www.amazon.com/gp/bestsellers/sporting-goods",
+      "baby_products": "https://www.amazon.com/gp/bestsellers/baby-products"
+    }
+  },
   "bsr_to_units": {
     "default": { "a": 90000, "b": 0.85 },
     "kitchen": { "a": 130000, "b": 0.87 },

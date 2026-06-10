@@ -44,10 +44,16 @@ def rank(candidates: list[Candidate], signals: dict, weights: dict,
         buzz = max(0.0, min(100.0, sig["strength"] * 2))          # 50% avg growth = 100
         idea = ORIGIN_AFFINITY.get(cand.origin, 25)
         review_pressure = min(100.0, r.reviews_count / econ_cfg["reviews_ref"] * 100)
-        seller_pressure = min(100.0, r.sellers_count / econ_cfg["sellers_ref"] * 100)
+        # sellers_count 0 means UNKNOWN on real connectors — score it neutral
+        # (midpoint), not as an empty market
+        sellers_known = r.sellers_count > 0
+        seller_pressure = (min(100.0, r.sellers_count / econ_cfg["sellers_ref"] * 100)
+                           if sellers_known else 50.0)
         low_comp = 100 - (review_pressure * 0.7 + seller_pressure * 0.3)
         agreement = sig["agreement"] / 3 * 100
-        supply_gap = min(100.0, velocity) * (1 - min(1.0, r.sellers_count / econ_cfg["sellers_ref"]))
+        gap_room = (1 - min(1.0, r.sellers_count / econ_cfg["sellers_ref"])
+                    if sellers_known else 0.5)
+        supply_gap = min(100.0, velocity) * gap_room
 
         cand.sub_scores = {k: round(v, 1) for k, v in {
             "velocity": velocity, "buzz": buzz, "idea_affinity": idea,

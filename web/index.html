@@ -54,9 +54,18 @@
       </label>
     </div>
 
-    <label>Exclude terms <span class="hint">optional</span>
-      <input id="exclude" placeholder="electric, licensed">
-    </label>
+    <div class="row2">
+      <label>Data source
+        <select id="connector">
+          <option value="">config default</option>
+          <option value="mock">mock (free, fake)</option>
+          <option value="apify">apify (real, credits)</option>
+        </select>
+      </label>
+      <label>Exclude terms
+        <input id="exclude" placeholder="electric, licensed">
+      </label>
+    </div>
 
     <button id="runBtn">▶ Run engine</button>
     <div id="runStatus" class="status"></div>

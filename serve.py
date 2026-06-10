@@ -76,7 +76,8 @@ class Api(SimpleHTTPRequestHandler):
             )
             if not ctx.seeds:
                 return self._json({"error": "at least one seed term is required"}, 400)
-            payload = run_discover(ctx, ai_backend=p.get("ai") or "heuristic")
+            payload = run_discover(ctx, ai_backend=p.get("ai") or "heuristic",
+                                   connector_name=p.get("connector") or None)
             return self._json(payload)
         except Exception as exc:  # surface engine errors to the UI, don't 500-blank
             return self._json({"error": str(exc)}, 500)

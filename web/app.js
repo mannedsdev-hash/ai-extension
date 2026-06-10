@@ -51,6 +51,7 @@ async function runEngine() {
       proven_mode: $("#provenMode").value,
       ai: $("#aiBackend").value,
       exclude: $("#exclude").value,
+      connector: $("#connector").value,
     };
     state.data = await getJSON("/api/run", {
       method: "POST",

@@ -37,6 +37,8 @@ def parse_args() -> argparse.Namespace:
     ap.add_argument("--proven-mode", choices=["peak", "growing", "both"], default="both")
     ap.add_argument("--ai", choices=["heuristic", "claude_session", "anthropic_api"],
                     default="heuristic")
+    ap.add_argument("--connector", choices=["mock", "apify"], default=None,
+                    help="override config/discovery.json -> connector")
     ap.add_argument("--shortlist", type=int, default=None)
     ap.add_argument("--demo", action="store_true",
                     help="run with demo seeds/categories on the mock connector")
@@ -66,7 +68,7 @@ def main() -> int:
         print("No seeds given. Use --seeds or --demo.")
         return 2
 
-    p = run_discover(ctx, ai_backend=args.ai)
+    p = run_discover(ctx, ai_backend=args.ai, connector_name=args.connector)
 
     print(f"\n=== PHASE 1 DISCOVER — run {p['run_id']} · persona {ctx.persona} "
           f"· connector {p['connector']} · ai {p['ai_backend']} ===\n")

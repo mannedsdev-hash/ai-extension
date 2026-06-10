@@ -21,8 +21,11 @@ class Connector(Protocol):
     def social_feed(self, platform: str, term: str) -> dict: ...
 
 
-def get_connector(name: str) -> "Connector":
+def get_connector(name: str, cfg: dict | None = None) -> "Connector":
     if name == "mock":
         from .mock import MockConnector
         return MockConnector()
+    if name == "apify":
+        from .apify import ApifyConnector
+        return ApifyConnector(cfg or {})
     raise ValueError(f"unknown connector '{name}' — wire it in engine/connectors/")

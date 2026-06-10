@@ -44,11 +44,19 @@ def estimate_all(candidates: list[Candidate], cfg: dict, ledger: Ledger,
     for cand in candidates:
         r = cand.raw
         oversize = "oversize" in cand.marks
+        # real connectors can't always fill every field — gaps become MARKS,
+        # visible in the UI, never silently guessed numbers
+        if r.bsr <= 0 and "no_bsr_data" not in cand.marks:
+            cand.marks.append("no_bsr_data")
+        if r.weight_oz <= 0 and "no_weight_data" not in cand.marks:
+            cand.marks.append("no_weight_data")
         rate = rate_by_cat.get(r.category, default_rate)
         referral = max(fees["minimum_referral_fee"], round(r.price * rate, 2))
-        fba = _fba_fee(r.weight_oz, oversize, fees)
+        fba = _fba_fee(r.weight_oz, oversize, fees) if r.weight_oz > 0 else \
+            next(t["fee"] for t in fees["fba_fulfillment_fee"]["tiers"]
+                 if t["id"] == fees["fba_fulfillment_fee"]["default_tier"])
         landed = round(r.price * econ_cfg["assumed_cogs_ratio"], 2)
-        units = _units_per_month(r.bsr, r.category, curves)
+        units = _units_per_month(r.bsr, r.category, curves) if r.bsr > 0 else 0
         margin = (r.price - referral - fba - landed) / r.price if r.price else 0.0
         breakeven = round((fba + landed) / max(1e-6, (1 - rate)), 2)
 

@@ -35,9 +35,21 @@ The two skills that originally used Keepa (`demand-competition-analyst`,
 
 ```sh
 python3 run_engine.py --demo                       # mock connector, reproducible
+python3 run_engine.py --demo --connector apify     # REAL Amazon data (needs APIFY_TOKEN)
 python3 run_engine.py --seeds "spice rack" --categories kitchen \
     --persona whitespace_scout --ai claude_session  # queue AI seams for Claude
 ```
+
+**Real data:** put `APIFY_TOKEN=...` in `.env` (gitignored) and use
+`--connector apify` (or the Data-source dropdown in the dashboard). Each
+search is one Apify actor run — slow and credit-metered, so the apify
+connector gets a tighter call cap (`config/discovery.json -> apify`) and a
+24h file cache (`data/cache/engine/`). Fields an actor doesn't return show
+up as `no_bsr_data` / `no_weight_data` marks — never invented numbers. Add
+`REDDIT_CLIENT_ID` / `REDDIT_CLIENT_SECRET` to `.env` (free script app at
+reddit.com/prefs/apps) and SocialScout's reddit feed turns real too. On
+Claude Code web, the environment's network policy must allow
+`api.apify.com`, `completion.amazon.com`, `www.reddit.com`, `oauth.reddit.com`.
 
 Scouts (custom/proven/social) → SearchResolver fan-out → rough_filter →
 economics → persona-weighted fusion → 🟢/🟡/🔵 lanes → `data/runs/shortlist.json`
